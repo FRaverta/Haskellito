@@ -1,0 +1,28 @@
+[Unit]
+Description=Haskellito FastAPI Backend
+After=network.target
+
+[Service]
+Type=simple
+User=haskellito
+Group=haskellito
+WorkingDirectory=/opt/Haskellito
+Environment="PATH=/opt/Haskellito/venv/bin:/usr/bin"
+ExecStart=/opt/Haskellito/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=5
+
+# Process limits
+LimitNOFILE=65536
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=haskellito
+
+[Install]
+WantedBy=multi-user.target
