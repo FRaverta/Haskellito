@@ -15,11 +15,54 @@ RestartSec=5
 # Process limits
 LimitNOFILE=65536
 
-# Security hardening
-NoNewPrivileges=true
-PrivateTmp=true
+# ===========================================
+# Security Hardening
+# ===========================================
 
+# Prevent privilege escalation
+NoNewPrivileges=true
+RestrictSUIDSGID=true
+
+# Filesystem protection
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+
+# Allow writes only to /tmp (for GHCi temp files)
+ReadWritePaths=/tmp
+
+# Drop ALL capabilities
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+# Restrict network to Unix sockets only (uvicorn binds to 127.0.0.1)
+RestrictAddressFamilies=AF_UNIX AF_INET
+
+# Namespace isolation
+RestrictNamespaces=true
+
+# System call restrictions
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources @mount @swap @reboot @raw-io
+
+# Restrict realtime scheduling
+RestrictRealtime=true
+
+# Lock down proc/sys access
+ProcSubset=pid
+ProtectProc=invisible
+
+# ===========================================
 # Logging
+# ===========================================
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=haskellito
