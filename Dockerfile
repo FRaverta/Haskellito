@@ -1,15 +1,14 @@
 # Haskellito Backend Dockerfile
-# Provides Python + GHCi in a sandboxed environment with bubblewrap
+# Provides Python + GHCi in a sandboxed environment
 
 FROM python:3.11-slim
 
-# Install GHC and bubblewrap for sandboxing
+# Install GHC (provides GHCi)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ghc \
-    bubblewrap \
     && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user for GHCi processes
+# Create non-root user for running the application
 RUN useradd -m -s /bin/bash haskellito
 
 # Set working directory
@@ -22,9 +21,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY main.py .
 
+# Switch to non-root user
+USER haskellito
+
 # Expose the API port
 EXPOSE 8000
 
-# Run as root so bubblewrap can create sandboxes
-# GHCi processes will be sandboxed with minimal privileges
+# Run the application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

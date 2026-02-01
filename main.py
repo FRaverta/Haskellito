@@ -3,7 +3,6 @@ import asyncio
 import fcntl
 import logging
 import os
-import shutil
 import select
 import time
 import uvicorn
@@ -11,58 +10,8 @@ from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from subprocess import Popen, PIPE, STDOUT
-from typing import Dict, List
+from typing import Dict
 from uuid import uuid4
-
-
-def get_ghci_command() -> List[str]:
-    """
-    Build the command to start GHCi, optionally wrapped in bubblewrap for sandboxing.
-    Falls back to direct GHCi execution if bubblewrap is not available.
-    """
-    base_cmd = ["ghci", "-XSafe"]
-    
-    # Check if bubblewrap is available
-    bwrap_path = shutil.which("bwrap")
-    if not bwrap_path:
-        logger.info("Bubblewrap not found, running GHCi directly")
-        return ["timeout", "3600"] + base_cmd
-    
-    logger.info("Using bubblewrap sandbox for GHCi")
-    
-    # Bubblewrap sandbox configuration
-    bwrap_cmd = [
-        "bwrap",
-        # Bind essential directories read-only
-        "--ro-bind", "/usr", "/usr",
-        "--ro-bind", "/lib", "/lib",
-        "--ro-bind", "/bin", "/bin",
-        "--ro-bind", "/etc", "/etc",
-        # GHC needs access to its libraries and package database
-        "--ro-bind", "/var/lib/ghc", "/var/lib/ghc",
-        # Symlinks for library paths (some systems use lib64)
-        "--symlink", "/usr/lib", "/lib64",
-        # Minimal /dev
-        "--dev", "/dev",
-        # Proc filesystem (needed for GHCi)
-        "--proc", "/proc",
-        # Temporary filesystem for GHCi working files
-        "--tmpfs", "/tmp",
-        # No home directory access
-        "--tmpfs", "/home",
-        # No network access
-        "--unshare-net",
-        # Isolated PID namespace
-        "--unshare-pid",
-        # Die when parent process dies
-        "--die-with-parent",
-        # New session to prevent terminal hijacking
-        "--new-session",
-        "--",
-        "timeout", "3600",
-    ] + base_cmd
-    
-    return bwrap_cmd
 
 app = FastAPI()
 
@@ -175,10 +124,8 @@ def drain_pipe(pipe) -> str:
 async def start_session():
     session_id = str(uuid4())
     
-    # Start GHCi process (sandboxed with bubblewrap if available)
-    ghci_cmd = get_ghci_command()
-    logger.info(f"Starting GHCi with command: {' '.join(ghci_cmd)}")
-    process = Popen(ghci_cmd, stdin=PIPE, stdout=PIPE, stderr=STDOUT, text=True, bufsize=1)
+    # Start GHCi process - merge stderr into stdout so we capture errors
+    process = Popen(["timeout", "3600", "ghci", "-XSafe"], stdin=PIPE, stdout=PIPE, stderr=STDOUT, text=True, bufsize=1)
     
     # Store process info
     sessions[session_id] = {

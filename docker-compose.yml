@@ -15,38 +15,12 @@ services:
       - ./main.py:/app/main.py:ro
     environment:
       - PYTHONUNBUFFERED=1
-    # Security: allow bubblewrap to create sandboxes, but restrict everything else
+    # Security restrictions for GHCi sandboxing
     security_opt:
-      - no-new-privileges:false  # Required for bubblewrap to work
-      - seccomp:unconfined       # Required for namespace creation
-    cap_add:
-      - SYS_ADMIN    # Required for bubblewrap namespace creation
-      - NET_ADMIN    # Required for network namespace isolation
+      - no-new-privileges:true
     cap_drop:
-      - AUDIT_CONTROL
-      - AUDIT_READ
-      - AUDIT_WRITE
-      - BLOCK_SUSPEND
-      - DAC_READ_SEARCH
-      - IPC_LOCK
-      - IPC_OWNER
-      - LEASE
-      - LINUX_IMMUTABLE
-      - MAC_ADMIN
-      - MAC_OVERRIDE
-      - MKNOD
-      - SETFCAP
-      - SYSLOG
-      - SYS_BOOT
-      - SYS_MODULE
-      - SYS_NICE
-      - SYS_PACCT
-      - SYS_PTRACE
-      - SYS_RAWIO
-      - SYS_RESOURCE
-      - SYS_TIME
-      - SYS_TTY_CONFIG
-      - WAKE_ALARM
+      - ALL
+    read_only: true
     tmpfs:
       - /tmp:size=100M,mode=1777
     # Resource limits to prevent abuse

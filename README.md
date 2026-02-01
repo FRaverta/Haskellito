@@ -12,16 +12,9 @@ A web-based interactive Haskell REPL powered by GHCi. Write, edit, and evaluate 
 
 ### Security
 
-Multiple layers of defense protect against malicious code execution:
-
 - **Safe Haskell** - Runs in GHCi's Safe mode (`-XSafe`)
-- **Command Filtering** - Dangerous GHCi commands (`:!`, `:shell`, `:load`, etc.) are blocked at the API level
-- **Bubblewrap Sandbox** - Each GHCi process runs in an isolated sandbox with:
-  - No network access (`--unshare-net`)
-  - Isolated PID namespace (`--unshare-pid`)
-  - Read-only filesystem (only `/tmp` is writable)
-  - No home directory access
-- **Docker Isolation** - Container-level resource limits and capability restrictions
+- **Command Filtering** - Dangerous GHCi commands (`:!`, `:shell`, `:load`, etc.) are blocked
+- **Sandboxed Containers** - Docker development environment with dropped capabilities and read-only filesystem
 - **Hardened Production** - Systemd service with extensive security directives
 
 ## Tech Stack
@@ -30,7 +23,6 @@ Multiple layers of defense protect against malicious code execution:
 - Python 3.11+
 - FastAPI
 - GHCi (Glasgow Haskell Compiler interactive)
-- Bubblewrap (process sandboxing)
 
 **Frontend:**
 - Vue 3
