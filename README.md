@@ -8,8 +8,14 @@ A web-based interactive Haskell REPL powered by GHCi. Write, edit, and evaluate 
 - **Code Editor** - Full-featured editor with Haskell syntax highlighting (CodeMirror)
 - **Live Console** - Evaluate expressions and see results in real-time
 - **Multi-line Support** - Write and load multi-line function definitions
-- **Safe Haskell** - Runs in GHCi's Safe mode for security
 - **Keyboard Shortcuts** - Press `⌘+Enter` (Mac) or `Ctrl+Enter` (Windows/Linux) to load code
+
+### Security
+
+- **Safe Haskell** - Runs in GHCi's Safe mode (`-XSafe`)
+- **Command Filtering** - Dangerous GHCi commands (`:!`, `:shell`, `:load`, etc.) are blocked
+- **Sandboxed Containers** - Docker development environment with dropped capabilities and read-only filesystem
+- **Hardened Production** - Systemd service with extensive security directives
 
 ## Tech Stack
 
@@ -24,22 +30,41 @@ A web-based interactive Haskell REPL powered by GHCi. Write, edit, and evaluate 
 - CodeMirror 6
 - Axios
 
-## Prerequisites
+## Getting Started
+
+### Option A: Docker (Recommended)
+
+The easiest way to run Haskellito locally with full sandboxing:
+
+```bash
+docker compose up
+```
+
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8000
+
+To rebuild after changes:
+
+```bash
+docker compose up --build
+```
+
+### Option B: Native Development
+
+#### Prerequisites
 
 - Python 3.11+
 - GHC (Glasgow Haskell Compiler) - provides GHCi
 - Node.js 20+
 
-## Getting Started
-
-### 1. Clone the repository
+#### 1. Clone the repository
 
 ```bash
 git clone <repository-url>
 cd haskellito
 ```
 
-### 2. Install backend dependencies
+#### 2. Install backend dependencies
 
 ```bash
 python3 -m venv venv
@@ -47,14 +72,14 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 3. Install frontend dependencies
+#### 3. Install frontend dependencies
 
 ```bash
 cd frontend
 npm install
 ```
 
-### 4. Run the development servers
+#### 4. Run the development servers
 
 Start the backend (from project root):
 
@@ -111,9 +136,13 @@ The `deploy/` folder contains scripts and configurations for deploying to Ubuntu
 ```
 
 This sets up:
-- Nginx as reverse proxy
-- Systemd service for the backend
-- Static file serving for the frontend
+- Nginx as reverse proxy with static file serving
+- Hardened systemd service with security restrictions:
+  - `ProtectSystem=strict` - Read-only filesystem
+  - `PrivateDevices=true` - Device isolation
+  - `NoNewPrivileges=true` - Prevent privilege escalation
+  - `CapabilityBoundingSet=` - All capabilities dropped
+  - System call filtering and namespace restrictions
 
 ## API Endpoints
 
@@ -129,6 +158,8 @@ This sets up:
 haskellito/
 ├── main.py              # FastAPI backend
 ├── requirements.txt     # Python dependencies
+├── Dockerfile           # Backend container image
+├── docker-compose.yml   # Local development environment
 ├── frontend/
 │   ├── src/
 │   │   ├── App.vue              # Main application
@@ -139,9 +170,9 @@ haskellito/
 │   ├── package.json
 │   └── vite.config.js
 └── deploy/
-    ├── setup.sh         # Server setup script
-    ├── nginx.conf       # Nginx configuration
-    └── haskellito.service # Systemd service
+    ├── setup.sh           # Server setup script (Ubuntu 22.04)
+    ├── nginx.conf         # Nginx reverse proxy config
+    └── haskellito.service # Systemd service (hardened)
 ```
 
 ## License
