@@ -48,6 +48,41 @@ class EvalRequest(BaseModel):
             return ":{\n" + stripped + "\n:}\n"
         return stripped + "\n"
 
+
+# Dangerous GHCi commands that could escape the sandbox
+DANGEROUS_COMMANDS = [
+    ':!',           # Shell command execution
+    ':shell',       # Open shell
+    ':cd',          # Change directory
+    ':script',      # Run script file
+    ':edit',        # Open editor
+    ':e ',          # Short for :edit
+    ':add',         # Add modules (could load malicious code)
+    ':load',        # Load modules
+    ':l ',          # Short for :load
+    ':module',      # Change module context
+    ':reload',      # Reload modules
+    ':r',           # Short for :reload (when at start)
+]
+
+
+def is_dangerous_command(code: str) -> tuple[bool, str]:
+    """
+    Check if the code contains dangerous GHCi commands.
+    Returns (is_dangerous, matched_command).
+    """
+    # Check each line for dangerous commands
+    for line in code.split('\n'):
+        line_stripped = line.strip().lower()
+        for cmd in DANGEROUS_COMMANDS:
+            # Check if line starts with the dangerous command
+            if line_stripped.startswith(cmd.lower()):
+                return True, cmd
+            # Also check for :r specifically (must be exact or followed by space/newline)
+            if cmd == ':r' and (line_stripped == ':r' or line_stripped.startswith(':r ')):
+                return True, cmd
+    return False, ""
+
 GHCI_PROMPT = "ghci> "
 
 
@@ -110,6 +145,12 @@ async def start_session():
 async def evaluate_code(session_id: str, request: EvalRequest):
     if session_id not in sessions:
         return {"error": "Session not found"}
+    
+    # Security check: block dangerous GHCi commands
+    is_dangerous, matched_cmd = is_dangerous_command(request.code)
+    if is_dangerous:
+        logger.warning(f"Blocked dangerous command '{matched_cmd}' in session {session_id}")
+        return {"error": f"Command '{matched_cmd}' is not allowed for security reasons"}
     
     process = sessions[session_id]["process"]
 
