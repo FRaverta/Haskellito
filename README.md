@@ -14,6 +14,7 @@ A web-based interactive Haskell REPL powered by GHCi. Write, edit, and evaluate 
 
 - **Safe Haskell** - Runs in GHCi's Safe mode (`-XSafe`)
 - **Command Filtering** - Dangerous GHCi commands (`:!`, `:shell`, `:load`, etc.) are blocked
+- **Resource Limits** - Each GHCi process is limited to 64MB memory and 60s CPU time
 - **Sandboxed Containers** - Docker development environment with dropped capabilities and read-only filesystem
 - **Hardened Production** - Systemd service with extensive security directives
 

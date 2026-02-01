@@ -3,6 +3,7 @@ import asyncio
 import fcntl
 import logging
 import os
+import resource
 import select
 import time
 import uvicorn
@@ -12,6 +13,20 @@ from pydantic import BaseModel
 from subprocess import Popen, PIPE, STDOUT
 from typing import Dict
 from uuid import uuid4
+
+
+def set_resource_limits():
+    """
+    Set resource limits for GHCi child processes.
+    These limits prevent resource exhaustion attacks.
+    Tuned for first-year students learning basic Haskell.
+    
+    Note: We don't use RLIMIT_AS (virtual memory) because GHC 9.6+ requires
+    ~400MB+ just to load shared libraries, plus ~8MB per OS thread for stacks.
+    Instead, we limit the Haskell heap via RTS options in the ghci command.
+    """
+    # Max 60 seconds CPU time (prevents infinite loops)
+    resource.setrlimit(resource.RLIMIT_CPU, (60, 60))
 
 app = FastAPI()
 
@@ -124,8 +139,17 @@ def drain_pipe(pipe) -> str:
 async def start_session():
     session_id = str(uuid4())
     
-    # Start GHCi process - merge stderr into stdout so we capture errors
-    process = Popen(["timeout", "3600", "ghci", "-XSafe"], stdin=PIPE, stdout=PIPE, stderr=STDOUT, text=True, bufsize=1)
+    # Start GHCi process with resource limits
+    # RTS options: -M64m limits Haskell heap to 64MB (sufficient for learning)
+    process = Popen(
+        ["timeout", "3600", "ghci", "-XSafe", "+RTS", "-M64m", "-RTS"],
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=STDOUT,
+        text=True,
+        bufsize=1,
+        preexec_fn=set_resource_limits  # Apply resource limits before exec
+    )
     
     # Store process info
     sessions[session_id] = {

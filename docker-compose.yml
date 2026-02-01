@@ -22,7 +22,8 @@ services:
       - ALL
     read_only: true
     tmpfs:
-      - /tmp:size=100M,mode=1777
+      - /tmp:size=256M,mode=1777,exec
+    shm_size: '256m'
     # Resource limits to prevent abuse
     deploy:
       resources:
