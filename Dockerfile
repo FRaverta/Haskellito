@@ -20,6 +20,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY main.py .
+COPY challenges ./challenges
 
 # Switch to non-root user
 USER haskellito

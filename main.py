@@ -11,8 +11,24 @@ from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from subprocess import Popen, PIPE, STDOUT
-from typing import Dict
+from typing import Dict, List, Optional
 from uuid import uuid4
+
+
+from challenges import CHALLENGES
+from pydantic import BaseModel
+
+
+class TestResult(BaseModel):
+    passed: bool
+    test_code: str
+    expected: str
+    actual: str
+
+
+class SubmitRequest(BaseModel):
+    code: str
+    session_id: Optional[str] = None  # ignored; kept for backward compatibility
 
 
 def set_resource_limits():
@@ -226,6 +242,145 @@ async def close_session(session_id: str):
     del sessions[session_id]
     
     return {"status": "Session closed"}
+
+
+# Challenge endpoints
+@api_router.get("/challenges")
+async def list_challenges():
+    """List all available challenges (without solutions)."""
+    return {
+        "challenges": [
+            {
+                "id": c.id,
+                "title": c.title,
+            }
+            for c in CHALLENGES.values()
+        ]
+    }
+
+
+@api_router.get("/challenges/{challenge_id}")
+async def get_challenge(challenge_id: str):
+    """Get a specific challenge (without solution)."""
+    if challenge_id not in CHALLENGES:
+        return {"error": "Challenge not found"}
+    
+    challenge = CHALLENGES[challenge_id]
+    return {
+        "id": challenge.id,
+        "title": challenge.title,
+        "description": challenge.description,
+        "starter_code": challenge.starter_code,
+        "test_count": len(challenge.tests),
+    }
+
+
+def _start_ghci_process() -> Popen:
+    """Start a fresh GHCi process with resource limits. Caller must kill it when done."""
+    process = Popen(
+        ["timeout", "3600", "ghci", "-XSafe", "+RTS", "-M64m", "-RTS"],
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=STDOUT,
+        text=True,
+        bufsize=1,
+        preexec_fn=set_resource_limits,
+    )
+    process.stdin.write(f':set prompt "{GHCI_PROMPT}"\n')
+    process.stdin.flush()
+    return process
+
+
+@api_router.post("/challenges/{challenge_id}/submit")
+async def submit_challenge(challenge_id: str, request: SubmitRequest):
+    """Submit a solution for a challenge. Spawns a GHCi process, runs tests, then closes it."""
+    if challenge_id not in CHALLENGES:
+        return {"error": "Challenge not found"}
+
+    is_dangerous, matched_cmd = is_dangerous_command(request.code)
+    if is_dangerous:
+        logger.warning(f"Blocked dangerous command '{matched_cmd}' in challenge submission")
+        return {"error": f"Command '{matched_cmd}' is not allowed for security reasons"}
+
+    challenge = CHALLENGES[challenge_id]
+    process = _start_ghci_process()
+
+    try:
+        await read_until_prompt(process, timeout=10)
+    except Exception as e:
+        try:
+            process.kill()
+            process.wait(timeout=5)
+        except Exception:
+            pass
+        return {"error": f"Failed to start GHCi: {str(e)}", "results": []}
+
+    try:
+        results: List[TestResult] = []
+
+        code_request = EvalRequest(code=request.code)
+        formatted_code = code_request.formatted()
+        logger.info(f"Loading code: {repr(formatted_code)}")
+        drain_pipe(process.stdout)
+        process.stdin.write(formatted_code)
+        process.stdin.flush()
+        load_output = await read_output(process, timeout=10)
+        logger.info(f"Load output: {repr(load_output)}")
+
+        if "error" in load_output.lower() or "not in scope" in load_output.lower():
+            return {
+                "error": f"Failed to load your code:\n{load_output}",
+                "results": [],
+            }
+
+        await asyncio.sleep(0.2)
+
+        for i, test in enumerate(challenge.tests):
+            try:
+                logger.info(f"Running test {i+1}: {test.code}")
+                process.stdout.flush()
+                stale = drain_pipe(process.stdout)
+                if stale:
+                    logger.info(f"Drained stale output before test {i+1}: {repr(stale)}")
+                process.stdin.write(test.code + "\n")
+                process.stdin.flush()
+                await asyncio.sleep(0.05)
+                output = await read_output(process, timeout=5)
+                actual = output.strip()
+                logger.info(f"Test {i+1} output: {repr(actual)}, expected: {repr(test.expected)}")
+                passed = actual == test.expected
+                results.append(
+                    TestResult(
+                        passed=passed,
+                        test_code=test.code,
+                        expected=test.expected,
+                        actual=actual,
+                    )
+                )
+            except Exception as e:
+                logger.error(f"Test {i+1} error: {e}")
+                results.append(
+                    TestResult(
+                        passed=False,
+                        test_code=test.code,
+                        expected=test.expected,
+                        actual=f"Error: {str(e)}",
+                    )
+                )
+
+        passed_count = sum(1 for r in results if r.passed)
+        return {
+            "results": [r.model_dump() for r in results],
+            "passed": passed_count,
+            "total": len(results),
+            "all_passed": passed_count == len(results),
+        }
+    finally:
+        try:
+            process.kill()
+            process.wait(timeout=5)
+        except Exception as e:
+            logger.warning(f"Error closing GHCi process: {e}")
 
 async def read_until_prompt(process: Popen, timeout: float = 10.0) -> str:
     """
