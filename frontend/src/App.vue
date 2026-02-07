@@ -1,9 +1,12 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { lastViewedChallengeId } from './stores/challengeProgress.js'
+import { setLocale, getLocale } from './i18n.js'
 
 const route = useRoute()
+const { t } = useI18n()
 
 // Go to last challenge when clicking Challenges, otherwise to the list
 const challengesLink = computed(() =>
@@ -11,6 +14,10 @@ const challengesLink = computed(() =>
     ? `/challenge/${lastViewedChallengeId.value}`
     : '/challenge'
 )
+
+function switchLocale(locale) {
+  setLocale(locale)
+}
 </script>
 
 <template>
@@ -21,11 +28,29 @@ const challengesLink = computed(() =>
       </router-link>
       <nav class="nav">
         <router-link to="/" class="nav-link" :class="{ active: route.path === '/' }">
-          Playground
+          {{ t('nav.playground') }}
         </router-link>
         <router-link :to="challengesLink" class="nav-link" :class="{ active: route.path.startsWith('/challenge') }">
-          Challenges
+          {{ t('nav.challenges') }}
         </router-link>
+        <span class="locale-switcher">
+          <button
+            type="button"
+            class="locale-btn"
+            :class="{ active: getLocale() === 'en' }"
+            @click="switchLocale('en')"
+          >
+            EN
+          </button>
+          <button
+            type="button"
+            class="locale-btn"
+            :class="{ active: getLocale() === 'es' }"
+            @click="switchLocale('es')"
+          >
+            ES
+          </button>
+        </span>
       </nav>
     </header>
 
@@ -69,6 +94,36 @@ const challengesLink = computed(() =>
 .nav {
   display: flex;
   gap: 0.5rem;
+  align-items: center;
+}
+
+.locale-switcher {
+  display: flex;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
+}
+
+.locale-btn {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #313244;
+  border-radius: 4px;
+  background: transparent;
+  color: #a6adc8;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.locale-btn:hover {
+  background: #313244;
+  color: #cdd6f4;
+}
+
+.locale-btn.active {
+  background: #89b4fa;
+  color: #1e1e2e;
+  border-color: #89b4fa;
 }
 
 .nav-link {

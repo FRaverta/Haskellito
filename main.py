@@ -7,7 +7,7 @@ import resource
 import select
 import time
 import uvicorn
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from subprocess import Popen, PIPE, STDOUT
@@ -245,14 +245,32 @@ async def close_session(session_id: str):
 
 
 # Challenge endpoints
+def _localized_title(challenge, lang: str) -> str:
+    if lang == "es" and getattr(challenge, "title_es", None):
+        return challenge.title_es
+    return challenge.title
+
+
+def _localized_description(challenge, lang: str) -> str:
+    if lang == "es" and getattr(challenge, "description_es", None):
+        return challenge.description_es
+    return challenge.description
+
+
+def _localized_starter_code(challenge, lang: str) -> str:
+    if lang == "es" and getattr(challenge, "starter_code_es", None):
+        return challenge.starter_code_es
+    return challenge.starter_code or ""
+
+
 @api_router.get("/challenges")
-async def list_challenges():
-    """List all available challenges (without solutions)."""
+async def list_challenges(lang: str = Query("en", description="Language code (en, es)")):
+    """List all available challenges (without solutions). Returns localized title per lang."""
     return {
         "challenges": [
             {
                 "id": c.id,
-                "title": c.title,
+                "title": _localized_title(c, lang),
             }
             for c in CHALLENGES.values()
         ]
@@ -260,17 +278,20 @@ async def list_challenges():
 
 
 @api_router.get("/challenges/{challenge_id}")
-async def get_challenge(challenge_id: str):
-    """Get a specific challenge (without solution)."""
+async def get_challenge(
+    challenge_id: str,
+    lang: str = Query("en", description="Language code (en, es)"),
+):
+    """Get a specific challenge (without solution). Returns localized content per lang."""
     if challenge_id not in CHALLENGES:
         return {"error": "Challenge not found"}
-    
+
     challenge = CHALLENGES[challenge_id]
     return {
         "id": challenge.id,
-        "title": challenge.title,
-        "description": challenge.description,
-        "starter_code": challenge.starter_code,
+        "title": _localized_title(challenge, lang),
+        "description": _localized_description(challenge, lang),
+        "starter_code": _localized_starter_code(challenge, lang),
         "test_count": len(challenge.tests),
     }
 

@@ -1,8 +1,11 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 import CodeEditor from '../components/CodeEditor.vue'
 import Interpreter from '../components/Interpreter.vue'
+
+const { t } = useI18n()
 
 // In development, vite proxies /api to localhost:8000
 // In production, nginx proxies /api to the backend
@@ -28,16 +31,16 @@ async function startSession() {
     const response = await axios.post(`${API_BASE}/sessions/`)
     sessionId.value = response.data.session_id
     isConnected.value = true
-    output.value.push({ type: 'system', text: 'GHCi session started.' })
+    output.value.push({ type: 'system', text: t('playground.sessionStarted') })
   } catch (error) {
-    output.value.push({ type: 'error', text: `Failed to start session: ${error.message}` })
+    output.value.push({ type: 'error', text: t('errors.error', { msg: error.message }) })
   }
 }
 
 // Evaluate code in GHCi (from editor - multiple lines)
 async function evaluate() {
   if (!sessionId.value) {
-    output.value.push({ type: 'error', text: 'No active session. Click "Connect" first.' })
+    output.value.push({ type: 'error', text: t('playground.noSession') })
     return
   }
 
@@ -45,7 +48,7 @@ async function evaluate() {
   const codeToEval = code.value
 
   // Show what we're loading from editor
-  output.value.push({ type: 'system', text: '-- Loading from editor...' })
+  output.value.push({ type: 'system', text: t('playground.loadingFromEditor') })
 
   try {
     const response = await axios.post(`${API_BASE}/sessions/${sessionId.value}/eval`, {
@@ -57,10 +60,10 @@ async function evaluate() {
     } else if (response.data.output) {
       output.value.push({ type: 'output', text: response.data.output })
     } else {
-      output.value.push({ type: 'system', text: 'Loaded.' })
+      output.value.push({ type: 'system', text: t('playground.loaded') })
     }
   } catch (error) {
-    output.value.push({ type: 'error', text: `Evaluation failed: ${error.message}` })
+    output.value.push({ type: 'error', text: t('errors.evalFailed', { msg: error.message }) })
   } finally {
     isLoading.value = false
   }
@@ -69,7 +72,7 @@ async function evaluate() {
 // Evaluate a single command from the REPL input
 async function evaluateCommand(command) {
   if (!sessionId.value) {
-    output.value.push({ type: 'error', text: 'No active session.' })
+    output.value.push({ type: 'error', text: t('playground.noSessionShort') })
     return
   }
 
@@ -89,7 +92,7 @@ async function evaluateCommand(command) {
       output.value.push({ type: 'output', text: response.data.output })
     }
   } catch (error) {
-    output.value.push({ type: 'error', text: `Error: ${error.message}` })
+    output.value.push({ type: 'error', text: t('errors.error', { msg: error.message }) })
   } finally {
     isLoading.value = false
   }
@@ -101,7 +104,7 @@ async function closeSession() {
 
   try {
     await axios.post(`${API_BASE}/sessions/${sessionId.value}/close`)
-    output.value.push({ type: 'system', text: 'Session closed.' })
+    output.value.push({ type: 'system', text: t('playground.sessionClosed') })
   } catch (error) {
     // Ignore errors on close
   } finally {
@@ -137,15 +140,15 @@ onUnmounted(() => {
   <div class="home-view">
     <main class="main">
       <div class="panel editor-panel">
-        <div class="panel-header">Editor</div>
+        <div class="panel-header">{{ t('playground.editor') }}</div>
         <CodeEditor v-model="code" />
       </div>
 
       <div class="panel interpreter-panel">
         <div class="panel-header">
-          GHCi Console
-          <span v-if="isConnected" class="status connected">● Connected</span>
-          <span v-else class="status disconnected">○ Disconnected</span>
+          {{ t('playground.ghciConsole') }}
+          <span v-if="isConnected" class="status connected">{{ t('playground.connected') }}</span>
+          <span v-else class="status disconnected">{{ t('playground.disconnected') }}</span>
         </div>
         <Interpreter 
           :output="output" 
@@ -162,24 +165,24 @@ onUnmounted(() => {
         @click="startSession" 
         class="btn btn-primary"
       >
-        Connect to GHCi
+        {{ t('playground.connect') }}
       </button>
       <button 
         v-else 
         @click="closeSession" 
         class="btn btn-secondary"
       >
-        Disconnect
+        {{ t('playground.disconnect') }}
       </button>
       <button 
         @click="evaluate" 
         :disabled="!isConnected || isLoading"
         class="btn btn-success"
       >
-        {{ isLoading ? 'Loading...' : 'Load (⌘+Enter)' }}
+        {{ isLoading ? t('playground.loading') : t('playground.load') }}
       </button>
       <button @click="clearOutput" class="btn btn-secondary">
-        Clear Output
+        {{ t('playground.clearOutput') }}
       </button>
     </div>
   </div>

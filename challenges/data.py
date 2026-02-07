@@ -17,6 +17,10 @@ class Challenge(BaseModel):
     solution: str  # Reference solution (hidden from user)
     tests: List[TestCase]
     starter_code: Optional[str] = ""
+    # Optional localized content (e.g. "es")
+    title_es: Optional[str] = None
+    description_es: Optional[str] = None
+    starter_code_es: Optional[str] = None
 
 
 CHALLENGES: Dict[str, Challenge] = {
@@ -46,7 +50,25 @@ double :: Num a => a -> a
             TestCase(code="double 0", expected="0"),
             TestCase(code="double (-3)", expected="-6"),
             TestCase(code="double 100", expected="200"),
-        ]
+        ],
+        title_es="Función Doble",
+        description_es="""## Función Doble
+
+Escribe una función llamada `double` que tome un número y devuelva el doble de su valor.
+
+### Ejemplos:
+```haskell
+double 5  -- devuelve 10
+double 0  -- devuelve 0
+double (-3)  -- devuelve -6
+```
+
+### Perfil de la funcion:
+```haskell
+double :: Num a => a -> a
+```
+""",
+        starter_code_es="-- Escribe aquí tu función double\ndouble x = undefined",
     ),
     "factorial": Challenge(
         id="factorial",
@@ -76,7 +98,27 @@ factorial :: Integer -> Integer
             TestCase(code="factorial 1", expected="1"),
             TestCase(code="factorial 5", expected="120"),
             TestCase(code="factorial 10", expected="3628800"),
-        ]
+        ],
+        title_es="Factorial",
+        description_es="""## Factorial
+
+Escribe una función llamada `factorial` que calcule el factorial de un entero no negativo.
+
+El factorial de n (escrito n!) es el producto de todos los enteros positivos menores o iguales a n.
+
+### Ejemplos:
+```haskell
+factorial 0  -- devuelve 1
+factorial 1  -- devuelve 1
+factorial 5  -- devuelve 120
+```
+
+### Perfil de la funcion:
+```haskell
+factorial :: Integer -> Integer
+```
+""",
+        starter_code_es="-- Escribe aquí tu función factorial\nfactorial n = undefined",
     ),
     "fibonacci": Challenge(
         id="fibonacci",
@@ -106,7 +148,27 @@ fib :: Integer -> Integer
             TestCase(code="fib 1", expected="1"),
             TestCase(code="fib 5", expected="5"),
             TestCase(code="fib 10", expected="55"),
-        ]
+        ],
+        title_es="Sucesión de Fibonacci",
+        description_es="""## Sucesión de Fibonacci
+
+Escribe una función llamada `fib` que devuelva el n-ésimo número de Fibonacci.
+
+La sucesión empieza con 0, 1, y cada número siguiente es la suma de los dos anteriores: 0, 1, 1, 2, 3, 5, 8, 13, ...
+
+### Ejemplos:
+```haskell
+fib 0  -- devuelve 0
+fib 1  -- devuelve 1
+fib 10  -- devuelve 55
+```
+
+### Perfil de la funcion:
+```haskell
+fib :: Integer -> Integer
+```
+""",
+        starter_code_es="-- Escribe aquí tu función fib\nfib n = undefined",
     ),
     "reverse-list": Challenge(
         id="reverse-list",
@@ -136,6 +198,26 @@ myReverse :: [a] -> [a]
             TestCase(code="myReverse \"hello\"", expected="\"olleh\""),
             TestCase(code="myReverse []", expected="[]"),
             TestCase(code="myReverse [1]", expected="[1]"),
-        ]
+        ],
+        title_es="Invertir una lista",
+        description_es="""## Invertir una lista
+
+Escribe una función llamada `myReverse` que invierta una lista.
+
+**Nota:** No uses la función predefinida `reverse`.
+
+### Ejemplos:
+```haskell
+myReverse [1,2,3]  -- devuelve [3,2,1]
+myReverse "hello"  -- devuelve "olleh"
+myReverse []  -- devuelve []
+```
+
+### Perfil de la funcion:
+```haskell
+myReverse :: [a] -> [a]
+```
+""",
+        starter_code_es="-- Escribe aquí tu función myReverse\nmyReverse xs = undefined",
     ),
 }

@@ -1,0 +1,51 @@
+{
+  "nav": {
+    "playground": "Playground",
+    "challenges": "Challenges"
+  },
+  "challenge": {
+    "title": "Challenge",
+    "pickOther": "Elegir otro desafío",
+    "solution": "Solución",
+    "testResults": "Resultados de pruebas",
+    "submit": "Enviar (⌘+Enter)",
+    "submitting": "Ejecutando pruebas...",
+    "submitHint": "Envía tu solución para ver los resultados",
+    "loading": "Cargando desafío...",
+    "status": "Estado",
+    "test": "Prueba",
+    "expected": "Esperado",
+    "result": "Resultado",
+    "passed": "pasaron"
+  },
+  "challengesList": {
+    "title": "Desafíos Haskell",
+    "subtitle": "Practica Haskell con estos desafíos de programación",
+    "loading": "Cargando desafíos...",
+    "startChallenge": "Comenzar desafío →",
+    "errorLoad": "Error al cargar desafíos: {msg}"
+  },
+  "playground": {
+    "editor": "Editor",
+    "ghciConsole": "Consola GHCi",
+    "connected": "● Conectado",
+    "disconnected": "○ Desconectado",
+    "connect": "Conectar a GHCi",
+    "disconnect": "Desconectar",
+    "load": "Cargar (⌘+Enter)",
+    "loading": "Cargando...",
+    "clearOutput": "Limpiar salida",
+    "sessionStarted": "Sesión GHCi iniciada.",
+    "sessionClosed": "Sesión cerrada.",
+    "loaded": "Cargado.",
+    "loadingFromEditor": "-- Cargando desde el editor...",
+    "noSession": "No hay sesión activa. Haz clic en \"Conectar\" primero.",
+    "noSessionShort": "No hay sesión activa."
+  },
+  "errors": {
+    "challengeLoad": "Error al cargar desafío: {msg}",
+    "submitFailed": "Error al enviar: {msg}",
+    "evalFailed": "Error al evaluar: {msg}",
+    "error": "Error: {msg}"
+  }
+}

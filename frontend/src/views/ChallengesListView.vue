@@ -1,10 +1,12 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 
 const API_BASE = '/api'
 const router = useRouter()
+const { t, locale } = useI18n()
 
 const challenges = ref([])
 const isLoading = ref(true)
@@ -15,7 +17,7 @@ async function fetchChallenges() {
     const response = await axios.get(`${API_BASE}/challenges`)
     challenges.value = response.data.challenges
   } catch (error) {
-    errorMessage.value = `Failed to load challenges: ${error.message}`
+    errorMessage.value = t('challengesList.errorLoad', { msg: error.message })
   } finally {
     isLoading.value = false
   }
@@ -25,6 +27,10 @@ function goToChallenge(id) {
   router.push(`/challenge/${id}`)
 }
 
+watch(locale, () => {
+  fetchChallenges()
+})
+
 onMounted(() => {
   fetchChallenges()
 })
@@ -33,11 +39,11 @@ onMounted(() => {
 <template>
   <div class="challenges-list-view">
     <div class="content">
-      <h2>Haskell Challenges</h2>
-      <p class="subtitle">Practice your Haskell skills with these coding challenges</p>
+      <h2>{{ t('challengesList.title') }}</h2>
+      <p class="subtitle">{{ t('challengesList.subtitle') }}</p>
 
       <div v-if="isLoading" class="loading">
-        Loading challenges...
+        {{ t('challengesList.loading') }}
       </div>
 
       <div v-else-if="errorMessage" class="error-message">
@@ -53,7 +59,7 @@ onMounted(() => {
         >
           <h3>{{ challenge.title }}</h3>
           <div class="card-footer">
-            <span class="start-btn">Start Challenge →</span>
+            <span class="start-btn">{{ t('challengesList.startChallenge') }}</span>
           </div>
         </div>
       </div>

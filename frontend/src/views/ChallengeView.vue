@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 import { marked } from 'marked'
 import CodeEditor from '../components/CodeEditor.vue'
@@ -9,6 +10,7 @@ import { getChallengeProgress, setChallengeProgress, setLastViewedChallengeId } 
 const API_BASE = '/api'
 const route = useRoute()
 const router = useRouter()
+const { t, locale } = useI18n()
 
 const challenge = ref(null)
 const code = ref('')
@@ -50,7 +52,7 @@ async function fetchChallenge() {
       results.value = []
     }
   } catch (error) {
-    errorMessage.value = `Failed to load challenge: ${error.message}`
+    errorMessage.value = t('errors.challengeLoad', { msg: error.message })
   }
 }
 
@@ -67,11 +69,14 @@ function saveProgress() {
 // Persist progress when code or results change
 watch([code, results], saveProgress, { deep: true })
 
-// Refetch when switching to a different challenge
+// Refetch when switching to a different challenge or locale
 watch(() => route.params.id, () => {
   if (route.params.id) {
     fetchChallenge()
   }
+})
+watch(locale, () => {
+  if (route.params.id) fetchChallenge()
 })
 
 // Submit solution for testing (server spawns GHCi, runs tests, then closes process)
@@ -91,7 +96,7 @@ async function submitSolution() {
       results.value = response.data.results
     }
   } catch (error) {
-    errorMessage.value = `Submission failed: ${error.message}`
+    errorMessage.value = t('errors.submitFailed', { msg: error.message })
   } finally {
     isSubmitting.value = false
   }
@@ -125,13 +130,13 @@ onUnmounted(() => {
       <!-- Left Panel: Challenge Description -->
       <div class="panel description-panel">
         <div class="panel-header panel-header-with-action">
-          <span>Challenge</span>
+          <span>{{ t('challenge.title') }}</span>
           <button
             type="button"
             class="btn btn-secondary btn-sm"
             @click="router.push('/challenge')"
           >
-            Pick other challenge
+            {{ t('challenge.pickOther') }}
           </button>
         </div>
         <div class="description-content">
@@ -139,14 +144,14 @@ onUnmounted(() => {
             {{ errorMessage }}
           </div>
           <div v-else-if="challenge" class="markdown-body" v-html="renderedDescription"></div>
-          <div v-else class="loading">Loading challenge...</div>
+          <div v-else class="loading">{{ t('challenge.loading') }}</div>
         </div>
       </div>
 
       <!-- Right Panel: Code Editor & Results -->
       <div class="panel editor-results-panel">
         <div class="editor-section">
-          <div class="panel-header">Solution</div>
+          <div class="panel-header">{{ t('challenge.solution') }}</div>
           <CodeEditor v-model="code" />
         </div>
 
@@ -159,9 +164,9 @@ onUnmounted(() => {
             <span class="results-header-chevron" :class="{ 'results-header-chevron--collapsed': !resultsExpanded }">
               ▼
             </span>
-            <span class="results-header-title">Test Results</span>
+            <span class="results-header-title">{{ t('challenge.testResults') }}</span>
             <span v-if="results.length > 0" :class="['results-summary', allPassed ? 'all-passed' : 'some-failed']">
-              {{ passedCount }}/{{ totalCount }} passed
+              {{ passedCount }}/{{ totalCount }} {{ t('challenge.passed') }}
             </span>
           </button>
 
@@ -171,16 +176,16 @@ onUnmounted(() => {
             </div>
 
             <div v-else-if="results.length === 0" class="no-results">
-              Submit your solution to see test results
+              {{ t('challenge.submitHint') }}
             </div>
 
             <table v-else class="results-table">
               <thead>
                 <tr>
-                  <th class="status-col">Status</th>
-                  <th class="test-col">Test</th>
-                  <th class="expected-col">Expected</th>
-                  <th class="actual-col">Result</th>
+                  <th class="status-col">{{ t('challenge.status') }}</th>
+                  <th class="test-col">{{ t('challenge.test') }}</th>
+                  <th class="expected-col">{{ t('challenge.expected') }}</th>
+                  <th class="actual-col">{{ t('challenge.result') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -206,7 +211,7 @@ onUnmounted(() => {
         :disabled="isSubmitting"
         class="btn btn-success"
       >
-        {{ isSubmitting ? 'Running Tests...' : 'Submit (⌘+Enter)' }}
+        {{ isSubmitting ? t('challenge.submitting') : t('challenge.submit') }}
       </button>
     </div>
   </div>
