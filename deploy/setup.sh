@@ -53,14 +53,14 @@ pip install --upgrade pip
 
 # Copy systemd service file
 echo "Installing systemd service..."
-cp /opt/Haskellito/deploy/haskellito.service /etc/systemd/system/
+cp /opt/haskellito/deploy/haskellito.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable haskellito
 
 # Copy nginx configuration
 echo "Configuring Nginx..."
-cp /opt/Haskellito/deploy/nginx.conf /etc/nginx/sites-available/Haskellito
-ln -sf /etc/nginx/sites-available/Haskellito /etc/nginx/sites-enabled/
+cp /opt/haskellito/deploy/nginx.conf /etc/nginx/sites-available/haskellito
+ln -sf /etc/nginx/sites-available/haskellito /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
 
 # Test nginx config
