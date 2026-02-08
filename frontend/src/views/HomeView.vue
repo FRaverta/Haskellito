@@ -9,7 +9,7 @@ const { t } = useI18n()
 
 // In development, vite proxies /api to localhost:8000
 // In production, nginx proxies /api to the backend
-const API_BASE = '/api'
+const API_BASE = '/api/playground'
 
 const code = ref(`-- Welcome to Haskellito!
 -- Write your Haskell code here

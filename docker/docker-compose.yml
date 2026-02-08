@@ -11,9 +11,8 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      # Mount source for hot reload during development
-      - ../backend/main.py:/app/main.py:ro
-      - ../backend/challenges:/app/challenges:ro
+      # Mount backend for hot reload during development
+      - ../backend:/app:ro
     environment:
       - PYTHONUNBUFFERED=1
     # Security restrictions for GHCi sandboxing

@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 
-const API_BASE = '/api'
+const API_BASE = '/api/playground'
 const router = useRouter()
 const { t, locale } = useI18n()
 

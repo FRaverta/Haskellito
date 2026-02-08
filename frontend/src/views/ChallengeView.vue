@@ -7,7 +7,7 @@ import { marked } from 'marked'
 import CodeEditor from '../components/CodeEditor.vue'
 import { getChallengeProgress, setChallengeProgress, setLastViewedChallengeId } from '../stores/challengeProgress.js'
 
-const API_BASE = '/api'
+const API_BASE = '/api/playground'
 const route = useRoute()
 const router = useRouter()
 const { t, locale } = useI18n()
