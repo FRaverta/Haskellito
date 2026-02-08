@@ -65,6 +65,8 @@ function switchLocale(locale) {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh; /* use dynamic viewport so layout fits visible area on mobile */
+  max-height: 100svh; /* cap at small viewport so toolbar stays visible on phones (incl. desktop mode) */
   width: 100vw;
   overflow: hidden;
 }

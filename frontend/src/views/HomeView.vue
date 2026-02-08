@@ -243,11 +243,29 @@ onUnmounted(() => {
 }
 
 .toolbar {
+  flex-shrink: 0;
   display: flex;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
   background: #181825;
   border-top: 1px solid #313244;
+}
+
+/* Short viewport (phone, or desktop layout on phone): fix toolbar to bottom of screen so it's always visible */
+@media (max-width: 768px), (max-height: 700px) {
+  .home-view {
+    padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .toolbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+  }
 }
 
 .btn {
