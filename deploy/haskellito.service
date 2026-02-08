@@ -6,9 +6,9 @@ After=network.target
 Type=simple
 User=haskellito
 Group=haskellito
-WorkingDirectory=/opt/Haskellito
-Environment="PATH=/opt/Haskellito/venv/bin:/usr/bin"
-ExecStart=/opt/Haskellito/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
+WorkingDirectory=/opt/Haskellito/backend
+Environment="PATH=/opt/Haskellito/backend/venv/bin:/usr/bin"
+ExecStart=/opt/Haskellito/backend/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
 Restart=always
 RestartSec=5
 

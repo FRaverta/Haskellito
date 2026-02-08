@@ -26,8 +26,8 @@ build-frontend:
 # Deploy: build frontend, install backend deps, copy static files, update systemd/nginx, restart
 deploy: build-frontend
 	@echo "Installing Python dependencies..."
-	[ -d venv ] || python3.11 -m venv venv
-	. venv/bin/activate && pip install -q --upgrade pip && pip install -q -r requirements.txt
+	cd backend && [ -d venv ] || python3.11 -m venv venv
+	. backend/venv/bin/activate && pip install -q --upgrade pip && pip install -q -r backend/requirements.txt
 	@echo "Copying frontend to $(WWW_ROOT)..."
 	sudo mkdir -p $(WWW_ROOT)
 	sudo cp -r $(FRONTEND_DIST)/* $(WWW_ROOT)/

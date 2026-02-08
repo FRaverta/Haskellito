@@ -35,10 +35,10 @@ A web-based interactive Haskell REPL powered by GHCi. Write, edit, and evaluate 
 
 ### Option A: Docker (Recommended)
 
-The easiest way to run Haskellito locally with full sandboxing:
+The easiest way to run Haskellito locally with full sandboxing (from repo root):
 
 ```bash
-docker compose up
+docker compose -f docker/docker-compose.yml up
 ```
 
 - Frontend: http://localhost:5173
@@ -47,7 +47,7 @@ docker compose up
 To rebuild after changes:
 
 ```bash
-docker compose up --build
+docker compose -f docker/docker-compose.yml up --build
 ```
 
 ### Option B: Native Development
@@ -70,7 +70,7 @@ cd haskellito
 ```bash
 python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
 ```
 
 #### 3. Install frontend dependencies
@@ -82,11 +82,11 @@ npm install
 
 #### 4. Run the development servers
 
-Start the backend (from project root):
+Start the backend (from project root, run uvicorn with backend as cwd):
 
 ```bash
 source venv/bin/activate
-python main.py
+cd backend && uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Start the frontend (in a separate terminal):
@@ -157,10 +157,13 @@ This sets up:
 
 ```
 haskellito/
-├── main.py              # FastAPI backend
-├── requirements.txt     # Python dependencies
-├── Dockerfile           # Backend container image
-├── docker-compose.yml   # Local development environment
+├── backend/
+│   ├── main.py              # FastAPI backend
+│   ├── requirements.txt     # Python dependencies
+│   └── challenges/          # Challenge definitions and data
+├── docker/
+│   ├── Dockerfile           # Backend container image
+│   └── docker-compose.yml   # Local development environment
 ├── frontend/
 │   ├── src/
 │   │   ├── App.vue              # Main application
@@ -170,10 +173,11 @@ haskellito/
 │   │   └── main.js
 │   ├── package.json
 │   └── vite.config.js
-└── deploy/
-    ├── setup.sh           # Server setup script (Ubuntu 22.04)
-    ├── nginx.conf         # Nginx reverse proxy config
-    └── haskellito.service # Systemd service (hardened)
+├── deploy/
+│   ├── setup.sh           # Server setup script (Ubuntu 22.04)
+│   ├── nginx.conf         # Nginx reverse proxy config
+│   └── haskellito.service # Systemd service (hardened)
+└── Makefile               # Deploy (run on server)
 ```
 
 ## License

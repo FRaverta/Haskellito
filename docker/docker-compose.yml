@@ -1,19 +1,19 @@
 # Haskellito Local Development Environment
-# Usage: docker compose up
+# Usage: from repo root: docker compose -f docker/docker-compose.yml up
 # Frontend: http://localhost:5173
 # Backend API: http://localhost:8000
 
 services:
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile
     ports:
       - "8000:8000"
     volumes:
       # Mount source for hot reload during development
-      - ./main.py:/app/main.py:ro
-      - ./challenges:/app/challenges:ro
+      - ../backend/main.py:/app/main.py:ro
+      - ../backend/challenges:/app/challenges:ro
     environment:
       - PYTHONUNBUFFERED=1
     # Security restrictions for GHCi sandboxing
@@ -40,7 +40,7 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - ./frontend:/app
+      - ../frontend:/app
       - frontend_node_modules:/app/node_modules
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     environment:

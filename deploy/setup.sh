@@ -44,12 +44,13 @@ fi
 # Set ownership
 chown -R haskellito:haskellito /opt/haskellito
 
-# Install Python dependencies globally or in venv
+# Install Python dependencies in backend venv
 echo "Setting up Python virtual environment..."
-cd /opt/haskellito
+cd /opt/haskellito/backend
 python3.11 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
+pip install -r requirements.txt
 
 # Copy systemd service file
 echo "Installing systemd service..."
@@ -75,7 +76,7 @@ echo "=== Setup Complete ==="
 echo ""
 echo "Next steps:"
 echo "1. Clone your repo to /opt/haskellito"
-echo "2. Run: cd /opt/haskellito && source venv/bin/activate && pip install -r requirements.txt"
+echo "2. Run: cd /opt/haskellito/backend && source venv/bin/activate && pip install -r requirements.txt"
 echo "3. Build frontend: cd frontend && npm install && npm run build"
 echo "4. Copy frontend build: cp -r frontend/dist/* /var/www/haskellito/"
 echo "5. Start the service: sudo systemctl start haskellito"
