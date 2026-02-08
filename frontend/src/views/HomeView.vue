@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 import CodeEditor from '../components/CodeEditor.vue'
@@ -118,6 +118,42 @@ function clearOutput() {
   output.value = []
 }
 
+// --- Resizable splitter logic ---
+const splitPercent = ref(50) // editor width as a percentage
+const isDragging = ref(false)
+const mainRef = ref(null)
+
+const editorStyle = computed(() => ({
+  flex: 'none',
+  width: `${splitPercent.value}%`,
+}))
+const interpreterStyle = computed(() => ({
+  flex: 'none',
+  width: `${100 - splitPercent.value}%`,
+}))
+
+function onSplitterPointerDown(e) {
+  e.preventDefault()
+  isDragging.value = true
+  document.addEventListener('pointermove', onPointerMove)
+  document.addEventListener('pointerup', onPointerUp)
+}
+
+function onPointerMove(e) {
+  if (!isDragging.value || !mainRef.value) return
+  const rect = mainRef.value.getBoundingClientRect()
+  let percent = ((e.clientX - rect.left) / rect.width) * 100
+  // Clamp between 20% and 80%
+  percent = Math.min(80, Math.max(20, percent))
+  splitPercent.value = percent
+}
+
+function onPointerUp() {
+  isDragging.value = false
+  document.removeEventListener('pointermove', onPointerMove)
+  document.removeEventListener('pointerup', onPointerUp)
+}
+
 // Keyboard shortcut for evaluation
 function handleKeydown(event) {
   if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
@@ -132,19 +168,28 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
+  document.removeEventListener('pointermove', onPointerMove)
+  document.removeEventListener('pointerup', onPointerUp)
   closeSession()
 })
 </script>
 
 <template>
   <div class="home-view">
-    <main class="main">
-      <div class="panel editor-panel">
+    <main ref="mainRef" class="main" :class="{ 'is-dragging': isDragging }">
+      <div class="panel editor-panel" :style="editorStyle">
         <div class="panel-header">{{ t('playground.editor') }}</div>
         <CodeEditor v-model="code" />
       </div>
 
-      <div class="panel interpreter-panel">
+      <div
+        class="splitter"
+        @pointerdown="onSplitterPointerDown"
+      >
+        <div class="splitter-handle" />
+      </div>
+
+      <div class="panel interpreter-panel" :style="interpreterStyle">
         <div class="panel-header">
           {{ t('playground.ghciConsole') }}
           <span v-if="isConnected" class="status connected">{{ t('playground.connected') }}</span>
@@ -207,13 +252,46 @@ onUnmounted(() => {
 .panel {
   display: flex;
   flex-direction: column;
-  flex: 1;
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
 }
 
-.editor-panel {
-  border-right: 1px solid #313244;
+/* Prevent text selection while dragging the splitter */
+.main.is-dragging {
+  user-select: none;
+  cursor: col-resize;
+}
+
+/* --- Splitter --- */
+.splitter {
+  flex-shrink: 0;
+  width: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: col-resize;
+  background: #313244;
+  transition: background 0.15s;
+  touch-action: none;
+}
+
+.splitter:hover,
+.splitter:active {
+  background: #89b4fa;
+}
+
+.splitter-handle {
+  width: 2px;
+  height: 32px;
+  border-radius: 1px;
+  background: #585b70;
+  transition: background 0.15s;
+}
+
+.splitter:hover .splitter-handle,
+.splitter:active .splitter-handle {
+  background: #cdd6f4;
 }
 
 .panel-header {
