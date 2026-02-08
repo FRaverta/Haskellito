@@ -121,6 +121,7 @@ defineExpose({ focusInput })
 <style scoped>
 .console-wrapper {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   background: #1e1e2e;
@@ -130,10 +131,13 @@ defineExpose({ focusInput })
 }
 
 .console-output {
-  flex: 1;
-  overflow-y: auto;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: scroll;
+  overflow-x: auto;
   padding: 1rem;
   padding-bottom: 0.5rem;
+  -webkit-overflow-scrolling: touch;
 }
 
 .welcome-message {

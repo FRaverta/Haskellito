@@ -54,7 +54,9 @@ function switchLocale(locale) {
       </nav>
     </header>
 
-    <router-view />
+    <div class="app-content">
+      <router-view />
+    </div>
   </div>
 </template>
 
@@ -65,6 +67,14 @@ function switchLocale(locale) {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
+}
+
+.app-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
