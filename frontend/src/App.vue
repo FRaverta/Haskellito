@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { lastViewedChallengeId } from './stores/challengeProgress.js'
 import { setLocale, getLocale } from './i18n.js'
+import haskellitoLogo from './assets/haskellito.svg'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -24,6 +25,7 @@ function switchLocale(locale) {
   <div class="app">
     <header class="header">
       <router-link to="/" class="logo">
+        <img :src="haskellitoLogo" alt="Haskellito" class="logo-icon" />
         <h1>Haskellito</h1>
       </router-link>
       <nav class="nav">
@@ -90,6 +92,14 @@ function switchLocale(locale) {
 
 .logo {
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
 }
 
 .logo h1 {
