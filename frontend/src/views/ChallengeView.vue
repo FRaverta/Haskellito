@@ -110,6 +110,42 @@ function handleKeydown(event) {
   }
 }
 
+// --- Resizable splitter logic ---
+const splitPercent = ref(40) // description panel width as a percentage
+const isDragging = ref(false)
+const mainRef = ref(null)
+
+const descriptionStyle = computed(() => ({
+  flex: 'none',
+  width: `${splitPercent.value}%`,
+}))
+const editorResultsStyle = computed(() => ({
+  flex: 'none',
+  width: `${100 - splitPercent.value}%`,
+}))
+
+function onSplitterPointerDown(e) {
+  e.preventDefault()
+  isDragging.value = true
+  document.addEventListener('pointermove', onPointerMove)
+  document.addEventListener('pointerup', onPointerUp)
+}
+
+function onPointerMove(e) {
+  if (!isDragging.value || !mainRef.value) return
+  const rect = mainRef.value.getBoundingClientRect()
+  let percent = ((e.clientX - rect.left) / rect.width) * 100
+  // Clamp between 20% and 80%
+  percent = Math.min(80, Math.max(20, percent))
+  splitPercent.value = percent
+}
+
+function onPointerUp() {
+  isDragging.value = false
+  document.removeEventListener('pointermove', onPointerMove)
+  document.removeEventListener('pointerup', onPointerUp)
+}
+
 onMounted(() => {
   fetchChallenge()
   window.addEventListener('keydown', handleKeydown)
@@ -121,14 +157,16 @@ onBeforeUnmount(() => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
+  document.removeEventListener('pointermove', onPointerMove)
+  document.removeEventListener('pointerup', onPointerUp)
 })
 </script>
 
 <template>
   <div class="challenge-view">
-    <main class="main">
+    <main ref="mainRef" class="main" :class="{ 'is-dragging': isDragging }">
       <!-- Left Panel: Challenge Description -->
-      <div class="panel description-panel">
+      <div class="panel description-panel" :style="descriptionStyle">
         <div class="panel-header panel-header-with-action">
           <span>{{ t('challenge.title') }}</span>
           <button
@@ -148,8 +186,16 @@ onUnmounted(() => {
         </div>
       </div>
 
+      <!-- Draggable Splitter -->
+      <div
+        class="splitter"
+        @pointerdown="onSplitterPointerDown"
+      >
+        <div class="splitter-handle" />
+      </div>
+
       <!-- Right Panel: Code Editor & Results -->
-      <div class="panel editor-results-panel">
+      <div class="panel editor-results-panel" :style="editorResultsStyle">
         <div class="editor-section">
           <div class="panel-header">{{ t('challenge.solution') }}</div>
           <CodeEditor v-model="code" />
@@ -238,14 +284,50 @@ onUnmounted(() => {
 }
 
 .description-panel {
-  flex: 0 0 40%;
-  border-right: 1px solid #313244;
+  min-width: 0;
+}
+
+/* Prevent text selection while dragging the splitter */
+.main.is-dragging {
+  user-select: none;
+  cursor: col-resize;
+}
+
+/* --- Splitter --- */
+.splitter {
+  flex-shrink: 0;
+  width: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: col-resize;
+  background: #313244;
+  transition: background 0.15s;
+  touch-action: none;
+}
+
+.splitter:hover,
+.splitter:active {
+  background: #89b4fa;
+}
+
+.splitter-handle {
+  width: 2px;
+  height: 32px;
+  border-radius: 1px;
+  background: #585b70;
+  transition: background 0.15s;
+}
+
+.splitter:hover .splitter-handle,
+.splitter:active .splitter-handle {
+  background: #cdd6f4;
 }
 
 .editor-results-panel {
-  flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .editor-section {
