@@ -40,7 +40,10 @@
     "loaded": "Loaded.",
     "loadingFromEditor": "-- Loading from editor...",
     "noSession": "No active session. Click \"Connect\" first.",
-    "noSessionShort": "No active session."
+    "noSessionShort": "No active session.",
+    "modeDedicated": "Dedicated",
+    "modeShared": "Shared",
+    "historyCleared": "Session history was lost. Please reload your code from the editor."
   },
   "errors": {
     "challengeLoad": "Failed to load challenge: {msg}",

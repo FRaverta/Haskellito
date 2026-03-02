@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.playground import cleanup_playground_sessions, router as playground_router
+from api.playground_v2 import cleanup_v2_workers, router as playground_v2_router
 
 app = FastAPI()
 
@@ -26,9 +27,11 @@ logging.basicConfig(level=logging.INFO)
 async def shutdown_event():
     """Clean up playground GHCi sessions on shutdown."""
     cleanup_playground_sessions()
+    cleanup_v2_workers()
 
 
 app.include_router(playground_router)
+app.include_router(playground_v2_router)
 
 
 if __name__ == "__main__":

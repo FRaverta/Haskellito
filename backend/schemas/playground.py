@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional
 
 
 # --- Pydantic models ---
@@ -21,6 +21,19 @@ class EvalRequest(BaseModel):
     def formatted(self) -> str:
         """Format code for GHCi evaluation."""
         stripped = self.code.strip()
+        if "\n" in stripped:
+            return ":{\n" + stripped + "\n:}\n"
+        return stripped + "\n"
+
+
+class EvalRequestV2(BaseModel):
+    history: List[str] = []
+    code: str
+
+    @staticmethod
+    def format_command(cmd: str) -> str:
+        """Format a single command for GHCi evaluation."""
+        stripped = cmd.strip()
         if "\n" in stripped:
             return ":{\n" + stripped + "\n:}\n"
         return stripped + "\n"

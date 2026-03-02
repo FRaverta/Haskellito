@@ -7,9 +7,11 @@ import Interpreter from '../components/Interpreter.vue'
 
 const { t } = useI18n()
 
-// In development, vite proxies /api to localhost:8000
-// In production, nginx proxies /api to the backend
-const API_BASE = '/api/playground'
+const API_V1 = '/api/playground'
+const API_V2 = '/api/v2/playground'
+
+const apiMode = ref('dedicated')
+const apiBase = computed(() => apiMode.value === 'dedicated' ? API_V1 : API_V2)
 
 const code = ref(`-- Welcome to Haskellito!
 -- Write your Haskell code here
@@ -24,20 +26,20 @@ const output = ref([])
 const sessionId = ref(null)
 const isConnected = ref(false)
 const isLoading = ref(false)
+const serverHistory = ref([])
 
-// Start a new GHCi session
 async function startSession() {
   try {
-    const response = await axios.post(`${API_BASE}/sessions/`)
+    const response = await axios.post(`${apiBase.value}/sessions/`)
     sessionId.value = response.data.session_id
     isConnected.value = true
+    serverHistory.value = []
     output.value.push({ type: 'system', text: t('playground.sessionStarted') })
   } catch (error) {
     output.value.push({ type: 'error', text: t('errors.error', { msg: error.message }) })
   }
 }
 
-// Evaluate code in GHCi (from editor - multiple lines)
 async function evaluate() {
   if (!sessionId.value) {
     output.value.push({ type: 'error', text: t('playground.noSession') })
@@ -46,21 +48,31 @@ async function evaluate() {
 
   isLoading.value = true
   const codeToEval = code.value
-
-  // Show what we're loading from editor
   output.value.push({ type: 'system', text: t('playground.loadingFromEditor') })
 
+  const isShared = apiMode.value === 'shared'
+  if (isShared) {
+    serverHistory.value = []
+  }
+
+  const payload = isShared
+    ? { history: [], code: codeToEval }
+    : { code: codeToEval }
+
   try {
-    const response = await axios.post(`${API_BASE}/sessions/${sessionId.value}/eval`, {
-      code: codeToEval
-    })
+    const response = await axios.post(
+      `${apiBase.value}/sessions/${sessionId.value}/eval`,
+      payload
+    )
 
     if (response.data.error) {
       output.value.push({ type: 'error', text: response.data.error })
     } else if (response.data.output) {
       output.value.push({ type: 'output', text: response.data.output })
+      if (isShared) serverHistory.value.push(codeToEval)
     } else {
       output.value.push({ type: 'system', text: t('playground.loaded') })
+      if (isShared) serverHistory.value.push(codeToEval)
     }
   } catch (error) {
     output.value.push({ type: 'error', text: t('errors.evalFailed', { msg: error.message }) })
@@ -69,7 +81,6 @@ async function evaluate() {
   }
 }
 
-// Evaluate a single command from the REPL input
 async function evaluateCommand(command) {
   if (!sessionId.value) {
     output.value.push({ type: 'error', text: t('playground.noSessionShort') })
@@ -77,19 +88,30 @@ async function evaluateCommand(command) {
   }
 
   isLoading.value = true
-  
-  // Show the input command
   output.value.push({ type: 'input', text: command })
 
-  try {
-    const response = await axios.post(`${API_BASE}/sessions/${sessionId.value}/eval`, {
-      code: command
-    })
+  const isShared = apiMode.value === 'shared'
+  const payload = isShared
+    ? { history: [...serverHistory.value], code: command }
+    : { code: command }
 
-    if (response.data.error) {
+  try {
+    const response = await axios.post(
+      `${apiBase.value}/sessions/${sessionId.value}/eval`,
+      payload
+    )
+
+    if (response.data.history_failed) {
+      serverHistory.value = []
       output.value.push({ type: 'error', text: response.data.error })
-    } else if (response.data.output) {
-      output.value.push({ type: 'output', text: response.data.output })
+      output.value.push({ type: 'system', text: t('playground.historyCleared') })
+    } else if (response.data.error) {
+      output.value.push({ type: 'error', text: response.data.error })
+    } else {
+      if (response.data.output) {
+        output.value.push({ type: 'output', text: response.data.output })
+      }
+      if (isShared) serverHistory.value.push(command)
     }
   } catch (error) {
     output.value.push({ type: 'error', text: t('errors.error', { msg: error.message }) })
@@ -98,18 +120,18 @@ async function evaluateCommand(command) {
   }
 }
 
-// Close the session
 async function closeSession() {
   if (!sessionId.value) return
 
   try {
-    await axios.post(`${API_BASE}/sessions/${sessionId.value}/close`)
+    await axios.post(`${apiBase.value}/sessions/${sessionId.value}/close`)
     output.value.push({ type: 'system', text: t('playground.sessionClosed') })
   } catch (error) {
     // Ignore errors on close
   } finally {
     sessionId.value = null
     isConnected.value = false
+    serverHistory.value = []
   }
 }
 
@@ -205,6 +227,20 @@ onUnmounted(() => {
     </main>
 
     <div class="toolbar">
+      <div class="mode-toggle" :class="{ disabled: isConnected }">
+        <button
+          class="mode-btn"
+          :class="{ active: apiMode === 'dedicated' }"
+          :disabled="isConnected"
+          @click="apiMode = 'dedicated'"
+        >{{ t('playground.modeDedicated') }}</button>
+        <button
+          class="mode-btn"
+          :class="{ active: apiMode === 'shared' }"
+          :disabled="isConnected"
+          @click="apiMode = 'shared'"
+        >{{ t('playground.modeShared') }}</button>
+      </div>
       <button 
         v-if="!isConnected" 
         @click="startSession" 
@@ -386,5 +422,41 @@ onUnmounted(() => {
 
 .btn-success:hover:not(:disabled) {
   background: #94e2d5;
+}
+
+.mode-toggle {
+  display: flex;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #45475a;
+  margin-right: 0.25rem;
+}
+
+.mode-toggle.disabled {
+  opacity: 0.5;
+}
+
+.mode-btn {
+  padding: 0.4rem 0.65rem;
+  border: none;
+  background: #313244;
+  color: #a6adc8;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mode-btn:disabled {
+  cursor: not-allowed;
+}
+
+.mode-btn.active {
+  background: #89b4fa;
+  color: #1e1e2e;
+}
+
+.mode-btn:not(.active):not(:disabled):hover {
+  background: #45475a;
 }
 </style>

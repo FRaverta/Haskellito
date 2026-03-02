@@ -40,7 +40,10 @@
     "loaded": "Cargado.",
     "loadingFromEditor": "-- Cargando desde el editor...",
     "noSession": "No hay sesión activa. Haz clic en \"Conectar\" primero.",
-    "noSessionShort": "No hay sesión activa."
+    "noSessionShort": "No hay sesión activa.",
+    "modeDedicated": "Dedicado",
+    "modeShared": "Compartido",
+    "historyCleared": "El historial de sesión se perdió. Por favor, recargá tu código desde el editor."
   },
   "errors": {
     "challengeLoad": "Error al cargar desafío: {msg}",
