@@ -10,7 +10,7 @@ const { t } = useI18n()
 const API_V1 = '/api/playground'
 const API_V2 = '/api/v2/playground'
 
-const apiMode = ref('dedicated')
+const apiMode = ref('shared')
 const apiBase = computed(() => apiMode.value === 'dedicated' ? API_V1 : API_V2)
 
 const code = ref(`-- Welcome to Haskellito!
@@ -227,7 +227,7 @@ onUnmounted(() => {
     </main>
 
     <div class="toolbar">
-      <div class="mode-toggle" :class="{ disabled: isConnected }">
+      <div v-show="false" class="mode-toggle" :class="{ disabled: isConnected }">
         <button
           class="mode-btn"
           :class="{ active: apiMode === 'dedicated' }"
