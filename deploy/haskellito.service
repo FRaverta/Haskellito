@@ -35,8 +35,8 @@ ProtectControlGroups=true
 ProtectClock=true
 ProtectHostname=true
 
-# Allow writes only to /tmp (for GHCi temp files)
-ReadWritePaths=/tmp
+# Allow writes for GHCi (.hi files, temp) and /tmp
+ReadWritePaths=/opt/Haskellito/backend /tmp
 
 # Drop ALL capabilities
 CapabilityBoundingSet=
@@ -50,8 +50,9 @@ RestrictNamespaces=true
 
 # System call restrictions
 SystemCallArchitectures=native
+# Allow @resources (setrlimit) for GHCi child process resource limits
 SystemCallFilter=@system-service
-SystemCallFilter=~@privileged @resources @mount @swap @reboot @raw-io
+SystemCallFilter=~@privileged @mount @swap @reboot @raw-io
 
 # Restrict realtime scheduling
 RestrictRealtime=true

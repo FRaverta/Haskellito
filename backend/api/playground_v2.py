@@ -33,6 +33,8 @@ NUM_GHCI_SESSIONS = int(os.environ.get("NUM_GHCI_SESSIONS", "3"))
 ACQUIRE_TIMEOUT = float(os.environ.get("WORKER_ACQUIRE_TIMEOUT", "30"))
 HISTORY_CMD_TIMEOUT = float(os.environ.get("HISTORY_CMD_TIMEOUT", "5"))
 EVAL_CMD_TIMEOUT = float(os.environ.get("EVAL_CMD_TIMEOUT", "10"))
+# GHCi can be slow to start on production (limited CPU); default 30s
+GHCI_STARTUP_TIMEOUT = float(os.environ.get("GHCI_STARTUP_TIMEOUT", "30"))
 
 EMPTY_MODULE_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -76,8 +78,8 @@ class Worker:
         """Kill any existing process and start a new GHCi."""
         self._kill_process()
         self.process = _start_ghci_process()
-        await read_until_prompt(self.process, timeout=10)
-        await read_until_prompt(self.process, timeout=10)
+        await read_until_prompt(self.process, timeout=GHCI_STARTUP_TIMEOUT)
+        await read_until_prompt(self.process, timeout=GHCI_STARTUP_TIMEOUT)
         logger.info(
             f"Worker {self.worker_id}: started fresh "
             f"GHCi (pid={self.process.pid})"
