@@ -79,7 +79,6 @@ class Worker:
         self._kill_process()
         self.process = _start_ghci_process()
         await read_until_prompt(self.process, timeout=GHCI_STARTUP_TIMEOUT)
-        await read_until_prompt(self.process, timeout=GHCI_STARTUP_TIMEOUT)
         logger.info(
             f"Worker {self.worker_id}: started fresh "
             f"GHCi (pid={self.process.pid})"

@@ -140,7 +140,7 @@ def _localized_starter_code(challenge, lang: str) -> str:
 def _start_ghci_process() -> Popen:
     """Start a fresh GHCi process with resource limits. Caller must kill it when done."""
     process = Popen(
-        ["timeout", "3600", "ghci", "-XSafe", "+RTS", "-M64m", "-RTS"],
+        ["timeout", "3600", "ghci", "-XSafe", "+RTS", "-M64m", "-RTS",  "-ghci-script", "ghci.ghci"],
         stdin=PIPE,
         stdout=PIPE,
         stderr=STDOUT,
