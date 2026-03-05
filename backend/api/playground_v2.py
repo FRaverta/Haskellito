@@ -22,6 +22,7 @@ from api.playground import (
     read_output,
     drain_pipe,
     is_dangerous_command,
+    strip_ghci_continuation_prompts,
 )
 from schemas.playground import EvalRequestV2
 
@@ -176,7 +177,7 @@ class Worker:
                 "GHCi process terminated unexpectedly"
             )
 
-        return output
+        return strip_ghci_continuation_prompts(output)
 
 
 class WorkerPool:

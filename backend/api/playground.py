@@ -119,6 +119,21 @@ async def read_output(process: Popen, timeout: float = 10.0) -> str:
     return await read_until_prompt(process, timeout=timeout)
 
 
+def strip_ghci_continuation_prompts(output: str) -> str:
+    """
+    Remove GHCi continuation prompts from multiline output.
+    When using :{ ... :} blocks, GHCi echoes prompts like 'Prelude Empty| '
+    for each line. We strip these so the user sees only the actual output.
+    """
+    import re
+    # Remove known continuation prompts (literal strings)
+    for prompt in ("Prelude Empty| ", "ghci| ", "Prelude| "):
+        output = output.replace(prompt, "")
+    # Also match generic "ModuleName| " pattern for other loaded modules
+    output = re.sub(r'\b[\w.]+(?:\s+[\w.]+)*\|\s*', '', output)
+    return ' '.join(output.split()).strip()
+
+
 def _localized_title(challenge, lang: str) -> str:
     if lang == "es" and getattr(challenge, "title_es", None):
         return challenge.title_es
