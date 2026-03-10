@@ -4,29 +4,33 @@ import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 import CodeEditor from '../components/CodeEditor.vue'
 import Interpreter from '../components/Interpreter.vue'
+import { encodeSharedCode, decodeSharedCode } from '../utils/shareCodec.js'
 
 const { t } = useI18n()
 
 const API_V1 = '/api/playground'
 const API_V2 = '/api/v2/playground'
-
-const apiMode = ref('shared')
-const apiBase = computed(() => apiMode.value === 'dedicated' ? API_V1 : API_V2)
-
-const code = ref(`-- Welcome to Haskellito!
+const DEFAULT_CODE = `-- Welcome to Haskellito!
 -- Write your Haskell code here
 
 -- Example: Simple function
 double x = x * 2
 
 -- Try evaluating: double 21
-`)
+`
+
+const apiMode = ref('shared')
+const apiBase = computed(() => apiMode.value === 'dedicated' ? API_V1 : API_V2)
+
+const code = ref(DEFAULT_CODE)
 
 const output = ref([])
 const sessionId = ref(null)
 const isConnected = ref(false)
 const isLoading = ref(false)
 const serverHistory = ref([])
+const fileInputRef = ref(null)
+let lastLoadedShareFragment = null
 
 async function startSession() {
   try {
@@ -140,6 +144,97 @@ function clearOutput() {
   output.value = []
 }
 
+function applySharedCodeFromHash(rawHash = window.location.hash) {
+  const hash = typeof rawHash === 'string' ? rawHash : window.location.hash
+
+  if (!hash || hash === '#') {
+    lastLoadedShareFragment = null
+    return
+  }
+
+  const fragment = hash.startsWith('#') ? hash.slice(1) : hash
+
+  if (!fragment) {
+    lastLoadedShareFragment = null
+    return
+  }
+
+  if (fragment === lastLoadedShareFragment) {
+    return
+  }
+
+  try {
+    code.value = decodeSharedCode(fragment)
+    lastLoadedShareFragment = fragment
+    output.value.push({ type: 'system', text: t('playground.sharedCodeLoaded') })
+  } catch (error) {
+    output.value.push({
+      type: 'error',
+      text: t('playground.shareDecodeFailed', { msg: error.message })
+    })
+  }
+}
+
+async function shareCode() {
+  const fragment = encodeSharedCode(code.value)
+  const url = new URL(window.location.href)
+
+  url.hash = fragment
+  window.history.replaceState(null, '', url.toString())
+  lastLoadedShareFragment = fragment
+
+  try {
+    await navigator.clipboard.writeText(url.toString())
+    output.value.push({ type: 'system', text: t('playground.shareCopied') })
+  } catch (error) {
+    output.value.push({ type: 'system', text: t('playground.shareReady') })
+    output.value.push({ type: 'output', text: url.toString() })
+  }
+}
+
+function saveCodeToFile() {
+  const blob = new Blob([code.value], { type: 'text/x-haskell;charset=utf-8' })
+  const objectUrl = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+
+  link.href = objectUrl
+  link.download = 'playground.hs'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(objectUrl)
+
+  output.value.push({ type: 'system', text: t('playground.fileSaved') })
+}
+
+function openLoadDialog() {
+  fileInputRef.value?.click()
+}
+
+async function loadCodeFromFile(event) {
+  const input = event.target
+  const [file] = input.files ?? []
+
+  if (!file) {
+    return
+  }
+
+  try {
+    code.value = await file.text()
+    output.value.push({
+      type: 'system',
+      text: t('playground.fileLoaded', { name: file.name })
+    })
+  } catch (error) {
+    output.value.push({
+      type: 'error',
+      text: t('playground.fileLoadFailed', { msg: error.message })
+    })
+  } finally {
+    input.value = ''
+  }
+}
+
 // --- Resizable splitter logic ---
 const splitPercent = ref(50) // editor width as a percentage
 const isDragging = ref(false)
@@ -185,11 +280,14 @@ function handleKeydown(event) {
 }
 
 onMounted(() => {
+  applySharedCodeFromHash()
   window.addEventListener('keydown', handleKeydown)
+  window.addEventListener('hashchange', applySharedCodeFromHash)
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
+  window.removeEventListener('hashchange', applySharedCodeFromHash)
   document.removeEventListener('pointermove', onPointerMove)
   document.removeEventListener('pointerup', onPointerUp)
   closeSession()
@@ -200,7 +298,88 @@ onUnmounted(() => {
   <div class="home-view">
     <main ref="mainRef" class="main" :class="{ 'is-dragging': isDragging }">
       <div class="panel editor-panel" :style="editorStyle">
-        <div class="panel-header">{{ t('playground.editor') }}</div>
+        <div class="panel-header">
+          <span>{{ t('playground.editor') }}</span>
+          <div class="panel-header-actions">
+            <button
+              type="button"
+              class="icon-btn"
+              :title="t('playground.loadTooltip')"
+              :aria-label="t('playground.loadTooltip')"
+              @click="openLoadDialog"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M12 16V5m0 0-4 4m4-4 4 4M5 19h14"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="icon-btn"
+              :title="t('playground.saveTooltip')"
+              :aria-label="t('playground.saveTooltip')"
+              @click="saveCodeToFile"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M5 20h14V8.5L15.5 5H5v15Zm3-10h8m-8 4h8"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                />
+                <path
+                  d="M9 5v4h6"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="icon-btn"
+              :title="t('playground.shareTooltip')"
+              :aria-label="t('playground.shareTooltip')"
+              @click="shareCode"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M14 6 20 12 14 18M20 12H9"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                />
+                <path
+                  d="M12 6H7a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <input
+          ref="fileInputRef"
+          type="file"
+          accept=".hs,.lhs,text/x-haskell,text/plain"
+          class="file-input"
+          @change="loadCodeFromFile"
+        />
         <CodeEditor v-model="code" />
       </div>
 
@@ -341,6 +520,46 @@ onUnmounted(() => {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid #45475a;
+  border-radius: 6px;
+  background: #232336;
+  color: #cdd6f4;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.icon-btn:hover {
+  background: #313244;
+  border-color: #585b70;
+}
+
+.icon-btn:focus-visible {
+  outline: 2px solid #89b4fa;
+  outline-offset: 2px;
+}
+
+.icon-btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.file-input {
+  display: none;
 }
 
 .status {
