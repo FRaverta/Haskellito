@@ -12,11 +12,6 @@ const API_V1 = '/api/playground'
 const API_V2 = '/api/v2/playground'
 const DEFAULT_CODE = `-- Welcome to Haskellito!
 -- Write your Haskell code here
-
--- Example: Simple function
-double x = x * 2
-
--- Try evaluating: double 21
 `
 
 const apiMode = ref('shared')
