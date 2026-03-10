@@ -42,6 +42,8 @@ DANGEROUS_COMMANDS = [
     ':module',
     ':reload',
     ':r',
+    ':{',
+    ':}',
 ]
 
 
