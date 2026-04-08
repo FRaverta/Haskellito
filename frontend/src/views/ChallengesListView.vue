@@ -71,7 +71,7 @@ onMounted(() => {
 .challenges-list-view {
   height: 100%;
   overflow-y: auto;
-  background: #1e1e2e;
+  background: var(--color-bg);
 }
 
 .content {
@@ -81,23 +81,23 @@ onMounted(() => {
 }
 
 h2 {
-  color: #89b4fa;
+  color: var(--color-accent);
   margin-bottom: 0.5rem;
   font-size: 2rem;
 }
 
 .subtitle {
-  color: #6c7086;
+  color: var(--color-text-subtle);
   margin-bottom: 2rem;
 }
 
 .loading {
-  color: #6c7086;
+  color: var(--color-text-subtle);
   font-style: italic;
 }
 
 .error-message {
-  color: #f38ba8;
+  color: var(--color-danger);
 }
 
 .challenges-grid {
@@ -107,8 +107,8 @@ h2 {
 }
 
 .challenge-card {
-  background: #181825;
-  border: 1px solid #313244;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 1.5rem;
   cursor: pointer;
@@ -116,13 +116,13 @@ h2 {
 }
 
 .challenge-card:hover {
-  border-color: #89b4fa;
+  border-color: var(--color-accent);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-elevated);
 }
 
 .challenge-card h3 {
-  color: #cdd6f4;
+  color: var(--color-text);
   margin-bottom: 1rem;
   font-size: 1.25rem;
 }
@@ -133,12 +133,12 @@ h2 {
 }
 
 .start-btn {
-  color: #89b4fa;
+  color: var(--color-accent);
   font-size: 0.875rem;
   font-weight: 500;
 }
 
 .challenge-card:hover .start-btn {
-  color: #b4befe;
+  color: var(--color-accent-hover);
 }
 </style>

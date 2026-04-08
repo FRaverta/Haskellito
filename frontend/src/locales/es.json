@@ -3,6 +3,11 @@
     "playground": "Playground",
     "challenges": "Challenges"
   },
+  "theme": {
+    "label": "Tema",
+    "light": "Light",
+    "dark": "Dark"
+  },
   "challenge": {
     "title": "Challenge",
     "pickOther": "Elegir otro desafío",

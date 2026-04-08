@@ -481,27 +481,27 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   cursor: col-resize;
-  background: #313244;
+  background: var(--color-surface-hover);
   transition: background 0.15s;
   touch-action: none;
 }
 
 .splitter:hover,
 .splitter:active {
-  background: #89b4fa;
+  background: var(--color-accent);
 }
 
 .splitter-handle {
   width: 2px;
   height: 32px;
   border-radius: 1px;
-  background: #585b70;
+  background: var(--color-surface-stronger);
   transition: background 0.15s;
 }
 
 .splitter:hover .splitter-handle,
 .splitter:active .splitter-handle {
-  background: #cdd6f4;
+  background: var(--color-text);
 }
 
 .panel-header {
@@ -509,8 +509,8 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem 1rem;
-  background: #181825;
-  color: #a6adc8;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -530,21 +530,21 @@ onUnmounted(() => {
   width: 2rem;
   height: 2rem;
   padding: 0;
-  border: 1px solid #45475a;
+  border: 1px solid var(--color-border-strong);
   border-radius: 6px;
-  background: #232336;
-  color: #cdd6f4;
+  background: var(--color-surface-raised);
+  color: var(--color-text);
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .icon-btn:hover {
-  background: #313244;
-  border-color: #585b70;
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-hover);
 }
 
 .icon-btn:focus-visible {
-  outline: 2px solid #89b4fa;
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 
@@ -563,11 +563,11 @@ onUnmounted(() => {
 }
 
 .status.connected {
-  color: #a6e3a1;
+  color: var(--color-success);
 }
 
 .status.disconnected {
-  color: #f38ba8;
+  color: var(--color-danger);
 }
 
 .toolbar {
@@ -576,8 +576,8 @@ onUnmounted(() => {
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
-  background: #181825;
-  border-top: 1px solid #313244;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
 }
 
 /* Short viewport (phone, or desktop layout on phone): fix toolbar to bottom of screen so it's always visible */
@@ -592,7 +592,7 @@ onUnmounted(() => {
     left: 0;
     right: 0;
     z-index: 10;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-sticky);
   }
 }
 
@@ -612,37 +612,37 @@ onUnmounted(() => {
 }
 
 .btn-primary {
-  background: #89b4fa;
-  color: #1e1e2e;
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #b4befe;
+  background: var(--color-accent-hover);
 }
 
 .btn-secondary {
-  background: #45475a;
-  color: #cdd6f4;
+  background: var(--color-surface-strong);
+  color: var(--color-text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #585b70;
+  background: var(--color-surface-stronger);
 }
 
 .btn-success {
-  background: #a6e3a1;
-  color: #1e1e2e;
+  background: var(--color-success);
+  color: var(--color-success-contrast);
 }
 
 .btn-success:hover:not(:disabled) {
-  background: #94e2d5;
+  background: var(--color-success-hover);
 }
 
 .mode-toggle {
   display: flex;
   border-radius: 6px;
   overflow: hidden;
-  border: 1px solid #45475a;
+  border: 1px solid var(--color-border-strong);
   margin-right: 0.25rem;
 }
 
@@ -653,8 +653,8 @@ onUnmounted(() => {
 .mode-btn {
   padding: 0.4rem 0.65rem;
   border: none;
-  background: #313244;
-  color: #a6adc8;
+  background: var(--color-surface-hover);
+  color: var(--color-text-muted);
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
@@ -666,11 +666,11 @@ onUnmounted(() => {
 }
 
 .mode-btn.active {
-  background: #89b4fa;
-  color: #1e1e2e;
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
 }
 
 .mode-btn:not(.active):not(:disabled):hover {
-  background: #45475a;
+  background: var(--color-surface-strong);
 }
 </style>

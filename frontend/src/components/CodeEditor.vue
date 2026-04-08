@@ -1,10 +1,11 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { EditorView, basicSetup } from 'codemirror'
-import { EditorState } from '@codemirror/state'
+import { EditorState, Compartment } from '@codemirror/state'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { StreamLanguage } from '@codemirror/language'
 import { haskell } from '@codemirror/legacy-modes/mode/haskell'
+import { theme } from '../stores/theme.js'
 
 const props = defineProps({
   modelValue: {
@@ -16,6 +17,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const editorContainer = ref(null)
+const editorTheme = new Compartment()
 let editorView = null
 
 onMounted(() => {
@@ -30,12 +32,14 @@ onMounted(() => {
     extensions: [
       basicSetup,
       StreamLanguage.define(haskell),
-      oneDark,
+      editorTheme.of(theme.value === 'dark' ? oneDark : []),
       updateListener,
       EditorView.theme({
         '&': {
           height: '100%',
-          fontSize: '14px'
+          fontSize: '14px',
+          backgroundColor: 'var(--color-bg)',
+          color: 'var(--color-text)'
         },
         '.cm-scroller': {
           overflow: 'auto',
@@ -46,6 +50,11 @@ onMounted(() => {
         },
         '.cm-line': {
           padding: '0 1rem'
+        },
+        '.cm-gutters': {
+          backgroundColor: 'var(--color-surface)',
+          color: 'var(--color-text-subtle)',
+          borderRight: '1px solid var(--color-border)'
         }
       })
     ]
@@ -69,6 +78,19 @@ watch(() => props.modelValue, (newValue) => {
     })
   }
 })
+
+watch(theme, (nextTheme) => {
+  if (!editorView) return
+
+  editorView.dispatch({
+    effects: editorTheme.reconfigure(nextTheme === 'dark' ? oneDark : [])
+  })
+})
+
+onUnmounted(() => {
+  editorView?.destroy()
+  editorView = null
+})
 </script>
 
 <template>
@@ -79,7 +101,7 @@ watch(() => props.modelValue, (newValue) => {
 .editor-container {
   flex: 1;
   overflow: hidden;
-  background: #1e1e2e;
+  background: var(--color-bg);
 }
 
 .editor-container :deep(.cm-editor) {
@@ -87,7 +109,7 @@ watch(() => props.modelValue, (newValue) => {
 }
 
 .editor-container :deep(.cm-gutters) {
-  background: #181825;
-  border-right: 1px solid #313244;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
 }
 </style>

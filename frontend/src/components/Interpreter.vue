@@ -124,7 +124,7 @@ defineExpose({ focusInput })
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: #1e1e2e;
+  background: var(--color-bg);
   font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
   font-size: 13px;
   cursor: text;
@@ -141,16 +141,16 @@ defineExpose({ focusInput })
 }
 
 .welcome-message {
-  color: #6c7086;
+  color: var(--color-text-subtle);
 }
 
 .ghci-banner {
-  color: #89b4fa;
+  color: var(--color-accent);
   margin: 0 0 0.5rem 0;
 }
 
 .hint {
-  color: #6c7086;
+  color: var(--color-text-subtle);
   font-style: italic;
 }
 
@@ -165,49 +165,49 @@ defineExpose({ focusInput })
 }
 
 .output-line.system {
-  color: #89b4fa;
+  color: var(--color-accent);
 }
 
 .output-line.input {
-  color: #cdd6f4;
+  color: var(--color-text);
 }
 
 .output-line.input pre::before {
   content: 'ghci> ';
-  color: #a6adc8;
+  color: var(--color-text-muted);
 }
 
 .output-line.output {
-  color: #a6e3a1;
+  color: var(--color-success);
 }
 
 .output-line.error {
-  color: #f38ba8;
+  color: var(--color-danger);
 }
 
 .input-line {
   display: flex;
   align-items: center;
   padding: 0.5rem 1rem 1rem 1rem;
-  background: #1e1e2e;
-  border-top: 1px solid #313244;
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
 }
 
 .prompt {
-  color: #a6adc8;
+  color: var(--color-text-muted);
   margin-right: 0.5rem;
   flex-shrink: 0;
 }
 
 .prompt.disabled {
-  color: #45475a;
+  color: var(--color-text-disabled);
 }
 
 .command-input {
   flex: 1;
   background: transparent;
   border: none;
-  color: #cdd6f4;
+  color: var(--color-text);
   font-family: inherit;
   font-size: inherit;
   outline: none;
@@ -215,11 +215,11 @@ defineExpose({ focusInput })
 }
 
 .command-input::placeholder {
-  color: #45475a;
+  color: var(--color-text-disabled);
   font-style: italic;
 }
 
 .command-input:disabled {
-  color: #6c7086;
+  color: var(--color-text-subtle);
 }
 </style>

@@ -4,6 +4,7 @@ import App from './App.vue'
 import router from './router'
 import i18n from './i18n.js'
 import axios from 'axios'
+import { applyTheme, theme } from './stores/theme.js'
 
 // Send current locale for challenge API requests so backend returns localized content
 axios.interceptors.request.use((config) => {
@@ -12,5 +13,7 @@ axios.interceptors.request.use((config) => {
   }
   return config
 })
+
+applyTheme(theme.value)
 
 createApp(App).use(router).use(i18n).mount('#app')

@@ -301,27 +301,27 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   cursor: col-resize;
-  background: #313244;
+  background: var(--color-surface-hover);
   transition: background 0.15s;
   touch-action: none;
 }
 
 .splitter:hover,
 .splitter:active {
-  background: #89b4fa;
+  background: var(--color-accent);
 }
 
 .splitter-handle {
   width: 2px;
   height: 32px;
   border-radius: 1px;
-  background: #585b70;
+  background: var(--color-surface-stronger);
   transition: background 0.15s;
 }
 
 .splitter:hover .splitter-handle,
 .splitter:active .splitter-handle {
-  background: #cdd6f4;
+  background: var(--color-text);
 }
 
 .editor-results-panel {
@@ -341,7 +341,7 @@ onUnmounted(() => {
   flex: 0 0 250px;
   display: flex;
   flex-direction: column;
-  border-top: 1px solid #313244;
+  border-top: 1px solid var(--color-border);
 }
 
 .results-section--collapsed {
@@ -354,10 +354,10 @@ onUnmounted(() => {
   gap: 0.5rem;
   width: 100%;
   padding: 0.5rem 1rem;
-  background: #181825;
+  background: var(--color-surface);
   border: none;
-  border-bottom: 1px solid #313244;
-  color: #a6adc8;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-muted);
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -368,7 +368,7 @@ onUnmounted(() => {
 }
 
 .results-header:hover {
-  background: #1e1e2e;
+  background: var(--color-surface-raised);
 }
 
 .results-header-chevron {
@@ -394,8 +394,8 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem 1rem;
-  background: #181825;
-  color: #a6adc8;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -407,35 +407,36 @@ onUnmounted(() => {
   flex: 1;
   overflow-y: auto;
   padding: 1.5rem;
-  background: #1e1e2e;
+  background: var(--color-bg);
 }
 
 .results-content {
   flex: 1;
   overflow-y: auto;
-  background: #1e1e2e;
+  background: var(--color-bg);
 }
 
 .markdown-body {
-  color: #cdd6f4;
+  color: var(--color-text);
   line-height: 1.6;
 }
 
 .markdown-body :deep(h2) {
-  color: #89b4fa;
+  color: var(--color-accent);
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #313244;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .markdown-body :deep(h3) {
-  color: #cba6f7;
+  color: var(--color-secondary-accent);
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
 }
 
 .markdown-body :deep(code) {
-  background: #313244;
+  background: var(--color-inline-code-bg);
+  color: var(--color-inline-code-text);
   padding: 0.2em 0.4em;
   border-radius: 4px;
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
@@ -443,7 +444,7 @@ onUnmounted(() => {
 }
 
 .markdown-body :deep(pre) {
-  background: #181825;
+  background: var(--color-surface);
   padding: 1rem;
   border-radius: 8px;
   overflow-x: auto;
@@ -456,7 +457,7 @@ onUnmounted(() => {
 }
 
 .error-message {
-  color: #f38ba8;
+  color: var(--color-danger);
   padding: 1rem;
 }
 
@@ -468,7 +469,7 @@ onUnmounted(() => {
 }
 
 .loading, .no-results {
-  color: #6c7086;
+  color: var(--color-text-subtle);
   padding: 1rem;
   font-style: italic;
 }
@@ -480,11 +481,11 @@ onUnmounted(() => {
 }
 
 .results-summary.all-passed {
-  color: #a6e3a1;
+  color: var(--color-success);
 }
 
 .results-summary.some-failed {
-  color: #f38ba8;
+  color: var(--color-danger);
 }
 
 .results-table {
@@ -496,26 +497,26 @@ onUnmounted(() => {
 .results-table th {
   text-align: left;
   padding: 0.75rem 1rem;
-  background: #181825;
-  color: #a6adc8;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
   font-weight: 600;
   font-size: 0.75rem;
   text-transform: uppercase;
-  border-bottom: 1px solid #313244;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .results-table td {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid #313244;
-  color: #cdd6f4;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
 }
 
 .results-table tr.passed td {
-  background: rgba(166, 227, 161, 0.05);
+  background: var(--result-pass-bg);
 }
 
 .results-table tr.failed td {
-  background: rgba(243, 139, 168, 0.05);
+  background: var(--result-fail-bg);
 }
 
 .results-table code {
@@ -542,11 +543,11 @@ onUnmounted(() => {
 }
 
 .status-icon.pass {
-  color: #a6e3a1;
+  color: var(--color-success);
 }
 
 .status-icon.fail {
-  color: #f38ba8;
+  color: var(--color-danger);
 }
 
 .toolbar {
@@ -554,8 +555,8 @@ onUnmounted(() => {
   gap: 0.5rem;
   align-items: center;
   padding: 0.75rem 1rem;
-  background: #181825;
-  border-top: 1px solid #313244;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
 }
 
 .btn {
@@ -579,29 +580,29 @@ onUnmounted(() => {
 }
 
 .btn-primary {
-  background: #89b4fa;
-  color: #1e1e2e;
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #b4befe;
+  background: var(--color-accent-hover);
 }
 
 .btn-secondary {
-  background: #45475a;
-  color: #cdd6f4;
+  background: var(--color-surface-strong);
+  color: var(--color-text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #585b70;
+  background: var(--color-surface-stronger);
 }
 
 .btn-success {
-  background: #a6e3a1;
-  color: #1e1e2e;
+  background: var(--color-success);
+  color: var(--color-success-contrast);
 }
 
 .btn-success:hover:not(:disabled) {
-  background: #94e2d5;
+  background: var(--color-success-hover);
 }
 </style>
