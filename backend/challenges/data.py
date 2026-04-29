@@ -44,7 +44,7 @@ double :: Num a => a -> a
 ```
 """,
         solution="double x = x * 2",
-        starter_code="-- Write your double function here\ndouble x = undefined",
+        starter_code="-- Write your double function here\ndouble :: Num a => a -> a",
         tests=[
             TestCase(code="double 5", expected="10"),
             TestCase(code="double 0", expected="0"),
@@ -68,7 +68,7 @@ double (-3)  -- devuelve -6
 double :: Num a => a -> a
 ```
 """,
-        starter_code_es="-- Escribe aquí tu función double\ndouble x = undefined",
+        starter_code_es="-- Escribe aquí tu función double\ndouble :: Num a => a -> a",
     ),
     "factorial": Challenge(
         id="factorial",
@@ -92,7 +92,7 @@ factorial :: Integer -> Integer
 ```
 """,
         solution="factorial 0 = 1\nfactorial n = n * factorial (n - 1)",
-        starter_code="-- Write your factorial function here\nfactorial n = undefined",
+        starter_code="-- Write your factorial function here\nfactorial :: Integer -> Integer",
         tests=[
             TestCase(code="factorial 0", expected="1"),
             TestCase(code="factorial 1", expected="1"),
@@ -118,7 +118,7 @@ factorial 5  -- devuelve 120
 factorial :: Integer -> Integer
 ```
 """,
-        starter_code_es="-- Escribe aquí tu función factorial\nfactorial n = undefined",
+        starter_code_es="-- Escribe aquí tu función factorial\nfactorial :: Integer -> Integer",
     ),
     "fibonacci": Challenge(
         id="fibonacci",
@@ -142,7 +142,7 @@ fib :: Integer -> Integer
 ```
 """,
         solution="fib 0 = 0\nfib 1 = 1\nfib n = fib (n-1) + fib (n-2)",
-        starter_code="-- Write your fib function here\nfib n = undefined",
+        starter_code="-- Write your fib function here\nfib :: Integer -> Integer",
         tests=[
             TestCase(code="fib 0", expected="0"),
             TestCase(code="fib 1", expected="1"),
@@ -168,7 +168,7 @@ fib 10  -- devuelve 55
 fib :: Integer -> Integer
 ```
 """,
-        starter_code_es="-- Escribe aquí tu función fib\nfib n = undefined",
+        starter_code_es="-- Escribe aquí tu función fib\nfib :: Integer -> Integer",
     ),
     "reverse-list": Challenge(
         id="reverse-list",
@@ -192,7 +192,7 @@ myReverse :: [a] -> [a]
 ```
 """,
         solution="myReverse [] = []\nmyReverse (x:xs) = myReverse xs ++ [x]",
-        starter_code="-- Write your myReverse function here\nmyReverse xs = undefined",
+        starter_code="-- Write your myReverse function here\nmyReverse :: [a] -> [a]",
         tests=[
             TestCase(code="myReverse [1,2,3]", expected="[3,2,1]"),
             TestCase(code="myReverse \"hello\"", expected="\"olleh\""),
@@ -218,6 +218,6 @@ myReverse []  -- devuelve []
 myReverse :: [a] -> [a]
 ```
 """,
-        starter_code_es="-- Escribe aquí tu función myReverse\nmyReverse xs = undefined",
+        starter_code_es="-- Escribe aquí tu función myReverse\nmyReverse :: [a] -> [a]",
     ),
 }

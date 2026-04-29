@@ -28,7 +28,7 @@ media :: Fractional a => a -> a -> a -> a
 ```
 """,
         solution="media x y z = (x + y + z) / 3",
-        starter_code="-- Define the media function\nmedia x y z = undefined",
+        starter_code="-- Define the media function\nmedia :: Fractional a => a -> a -> a -> a",
         tests=[
             TestCase(code="media 1 3 8", expected="4.0"),
             TestCase(code="media (-1) 0 7", expected="2.0"),
@@ -51,7 +51,7 @@ media 6 6 6   -- devuelve 6.0
 media :: Fractional a => a -> a -> a -> a
 ```
 """,
-        starter_code_es="-- Definir la función media\nmedia x y z = undefined",
+        starter_code_es="-- Definir la función media\nmedia :: Fractional a => a -> a -> a -> a",
     ),
 
     # -------------------------------------------------------------------------
@@ -77,7 +77,7 @@ sumaEuros :: Num a => a -> a -> a -> a -> a -> a
 ```
 """,
         solution="sumaEuros a b c d e = 1*a + 2*b + 5*c + 10*d + 20*e",
-        starter_code="-- Define the sumaEuros function\nsumaEuros a b c d e = undefined",
+        starter_code="-- Define the sumaEuros function\nsumaEuros :: Num a => a -> a -> a -> a -> a -> a",
         tests=[
             TestCase(code="sumaEuros 0 0 0 0 1", expected="20"),
             TestCase(code="sumaEuros 10 0 0 0 0", expected="10"),
@@ -101,7 +101,7 @@ sumaEuros 1 1 1 1 1   -- devuelve 38
 sumaEuros :: Num a => a -> a -> a -> a -> a -> a
 ```
 """,
-        starter_code_es="-- Definir la función sumaEuros\nsumaEuros a b c d e = undefined",
+        starter_code_es="-- Definir la función sumaEuros\nsumaEuros :: Num a => a -> a -> a -> a -> a -> a",
     ),
 
     # -------------------------------------------------------------------------
@@ -128,7 +128,7 @@ volumenEsfera :: Floating a => a -> a
 ```
 """,
         solution="volumenEsfera r = (4/3) * pi * r^3",
-        starter_code="-- Define the volumenEsfera function\nvolumenEsfera r = undefined",
+        starter_code="-- Define the volumenEsfera function\nvolumenEsfera :: Floating a => a -> a",
         tests=[
             TestCase(code="volumenEsfera 0", expected="0.0"),
             TestCase(code="volumenEsfera 10", expected="4188.790204786391"),
@@ -151,7 +151,7 @@ volumenEsfera 0   -- devuelve 0.0
 volumenEsfera :: Floating a => a -> a
 ```
 """,
-        starter_code_es="-- Definir la función volumenEsfera\nvolumenEsfera r = undefined",
+        starter_code_es="-- Definir la función volumenEsfera\nvolumenEsfera :: Floating a => a -> a",
     ),
 
     # -------------------------------------------------------------------------
@@ -176,7 +176,7 @@ areaCorona :: Floating a => a -> a -> a
 ```
 """,
         solution="areaCorona r1 r2 = pi * (r2^2 - r1^2)",
-        starter_code="-- Define the areaCorona function\nareaCorona r1 r2 = undefined",
+        starter_code="-- Define the areaCorona function\nareaCorona :: Floating a => a -> a -> a",
         tests=[
             TestCase(code="areaCorona 1 2", expected="9.42477796076938"),
             TestCase(code="areaCorona 2 5", expected="65.97344572538566"),
@@ -197,7 +197,7 @@ areaCorona 2 5  -- devuelve 65.97344572538566
 areaCorona :: Floating a => a -> a -> a
 ```
 """,
-        starter_code_es="-- Definir la función areaCorona\nareaCorona r1 r2 = undefined",
+        starter_code_es="-- Definir la función areaCorona\nareaCorona :: Floating a => a -> a -> a",
     ),
 
     # -------------------------------------------------------------------------
@@ -223,7 +223,7 @@ ultimaCifra :: Integral a => a -> a
 ```
 """,
         solution="ultimaCifra x = mod x 10",
-        starter_code="-- Define the ultimaCifra function\nultimaCifra x = undefined",
+        starter_code="-- Define the ultimaCifra function\nultimaCifra :: Integral a => a -> a",
         tests=[
             TestCase(code="ultimaCifra 325", expected="5"),
             TestCase(code="ultimaCifra 0", expected="0"),
@@ -246,7 +246,7 @@ ultimaCifra 100  -- devuelve 0
 ultimaCifra :: Integral a => a -> a
 ```
 """,
-        starter_code_es="-- Definir la función ultimaCifra\nultimaCifra x = undefined",
+        starter_code_es="-- Definir la función ultimaCifra\nultimaCifra :: Integral a => a -> a",
     ),
 
     # -------------------------------------------------------------------------
@@ -272,7 +272,7 @@ maxTres :: Ord a => a -> a -> a -> a
 ```
 """,
         solution="maxTres x y z = max x (max y z)",
-        starter_code="-- Define the maxTres function\nmaxTres x y z = undefined",
+        starter_code="-- Define the maxTres function\nmaxTres :: Ord a => a -> a -> a -> a",
         tests=[
             TestCase(code="maxTres 6 2 4", expected="6"),
             TestCase(code="maxTres 6 7 4", expected="7"),
@@ -295,7 +295,7 @@ maxTres 6 7 9  -- devuelve 9
 maxTres :: Ord a => a -> a -> a -> a
 ```
 """,
-        starter_code_es="-- Definir la función maxTres\nmaxTres x y z = undefined",
+        starter_code_es="-- Definir la función maxTres\nmaxTres :: Ord a => a -> a -> a -> a",
     ),
 
     # -------------------------------------------------------------------------
@@ -324,7 +324,7 @@ xor1 :: Bool -> Bool -> Bool
 ```
 """,
         solution="xor1 x y = x /= y",
-        starter_code="-- Define the xor1 function\nxor1 x y = undefined",
+        starter_code="-- Define the xor1 function\nxor1 :: Bool -> Bool -> Bool",
         tests=[
             TestCase(code="xor1 True True", expected="False"),
             TestCase(code="xor1 True False", expected="True"),
@@ -351,7 +351,7 @@ xor1 False False -- devuelve False
 xor1 :: Bool -> Bool -> Bool
 ```
 """,
-        starter_code_es="-- Definir la función xor1\nxor1 x y = undefined",
+        starter_code_es="-- Definir la función xor1\nxor1 :: Bool -> Bool -> Bool",
     ),
 
     # -------------------------------------------------------------------------
@@ -376,7 +376,7 @@ rota1 :: [a] -> [a]
 ```
 """,
         solution="rota1 xs = tail xs ++ [head xs]",
-        starter_code="-- Define the rota1 function\nrota1 xs = undefined",
+        starter_code="-- Define the rota1 function\nrota1 :: [a] -> [a]",
         tests=[
             TestCase(code="rota1 [3,2,5,7]", expected="[2,5,7,3]"),
             TestCase(code="rota1 [1]", expected="[1]"),
@@ -398,7 +398,7 @@ rota1 [1]        -- devuelve [1]
 rota1 :: [a] -> [a]
 ```
 """,
-        starter_code_es="-- Definir la función rota1\nrota1 xs = undefined",
+        starter_code_es="-- Definir la función rota1\nrota1 :: [a] -> [a]",
     ),
 
     # -------------------------------------------------------------------------
@@ -424,7 +424,7 @@ rota :: Int -> [a] -> [a]
 ```
 """,
         solution="rota n xs = drop n xs ++ take n xs",
-        starter_code="-- Define the rota function\nrota n xs = undefined",
+        starter_code="-- Define the rota function\nrota :: Int -> [a] -> [a]",
         tests=[
             TestCase(code="rota 1 [3,2,5,7]", expected="[2,5,7,3]"),
             TestCase(code="rota 2 [3,2,5,7]", expected="[5,7,3,2]"),
@@ -447,7 +447,7 @@ rota 3 [3,2,5,7]  -- devuelve [7,3,2,5]
 rota :: Int -> [a] -> [a]
 ```
 """,
-        starter_code_es="-- Definir la función rota\nrota n xs = undefined",
+        starter_code_es="-- Definir la función rota\nrota :: Int -> [a] -> [a]",
     ),
 
     # -------------------------------------------------------------------------
@@ -474,7 +474,7 @@ rango :: Ord a => [a] -> [a]
 ```
 """,
         solution="rango xs = [minimum xs, maximum xs]",
-        starter_code="-- Define the rango function\nrango xs = undefined",
+        starter_code="-- Define the rango function\nrango :: Ord a => [a] -> [a]",
         tests=[
             TestCase(code="rango [3,2,7,5]", expected="[2,7]"),
             TestCase(code="rango [1,1,1]", expected="[1,1]"),
@@ -498,7 +498,7 @@ rango [1,1,1]    -- devuelve [1,1]
 rango :: Ord a => [a] -> [a]
 ```
 """,
-        starter_code_es="-- Definir la función rango\nrango xs = undefined",
+        starter_code_es="-- Definir la función rango\nrango :: Ord a => [a] -> [a]",
     ),
 
     # -------------------------------------------------------------------------
@@ -523,7 +523,7 @@ palindromo :: Eq a => [a] -> Bool
 ```
 """,
         solution="palindromo xs = xs == reverse xs",
-        starter_code="-- Define the palindromo function\npalindromo xs = undefined",
+        starter_code="-- Define the palindromo function\npalindromo :: Eq a => [a] -> Bool",
         tests=[
             TestCase(code="palindromo [3,2,1,2,3]", expected="True"),
             TestCase(code="palindromo [3,2,1]", expected="False"),
@@ -546,7 +546,7 @@ palindromo [3,2,1]      -- devuelve False
 palindromo :: Eq a => [a] -> Bool
 ```
 """,
-        starter_code_es="-- Definir la función palindromo\npalindromo xs = undefined",
+        starter_code_es="-- Definir la función palindromo\npalindromo :: Eq a => [a] -> Bool",
     ),
 
     # -------------------------------------------------------------------------
@@ -571,7 +571,7 @@ interior :: [a] -> [a]
 ```
 """,
         solution="interior xs = tail (init xs)",
-        starter_code="-- Define the interior function\ninterior xs = undefined",
+        starter_code="-- Define the interior function\ninterior :: [a] -> [a]",
         tests=[
             TestCase(code="interior [2,5,3,7,3]", expected="[5,3,7]"),
             TestCase(code="interior [2,3]", expected="[]"),
@@ -593,7 +593,7 @@ interior [2,3]         -- devuelve []
 interior :: [a] -> [a]
 ```
 """,
-        starter_code_es="-- Definir la función interior\ninterior xs = undefined",
+        starter_code_es="-- Definir la función interior\ninterior :: [a] -> [a]",
     ),
 
     # -------------------------------------------------------------------------
@@ -618,7 +618,7 @@ finales :: Int -> [a] -> [a]
 ```
 """,
         solution="finales n xs = drop (length xs - n) xs",
-        starter_code="-- Define the finales function\nfinales n xs = undefined",
+        starter_code="-- Define the finales function\nfinales :: Int -> [a] -> [a]",
         tests=[
             TestCase(code="finales 3 [2,5,4,7,9,6]", expected="[7,9,6]"),
             TestCase(code="finales 1 [2,5,4,7,9,6]", expected="[6]"),
@@ -640,7 +640,7 @@ finales 1 [2,5,4,7,9,6]  -- devuelve [6]
 finales :: Int -> [a] -> [a]
 ```
 """,
-        starter_code_es="-- Definir la función finales\nfinales n xs = undefined",
+        starter_code_es="-- Definir la función finales\nfinales :: Int -> [a] -> [a]",
     ),
 
     # -------------------------------------------------------------------------
@@ -666,7 +666,7 @@ segmento :: Int -> Int -> [a] -> [a]
 ```
 """,
         solution="segmento i j xs = drop (i-1) (take j xs)",
-        starter_code="-- Define the segmento function\nsegmento i j xs = undefined",
+        starter_code="-- Define the segmento function\nsegmento :: Int -> Int -> [a] -> [a]",
         tests=[
             TestCase(code="segmento 3 4 [3,4,1,2,7,9,0]", expected="[1,2]"),
             TestCase(code="segmento 3 5 [3,4,1,2,7,9,0]", expected="[1,2,7]"),
@@ -689,7 +689,7 @@ segmento 5 3 [3,4,1,2,7,9,0]  -- devuelve []
 segmento :: Int -> Int -> [a] -> [a]
 ```
 """,
-        starter_code_es="-- Definir la función segmento\nsegmento i j xs = undefined",
+        starter_code_es="-- Definir la función segmento\nsegmento :: Int -> Int -> [a] -> [a]",
     ),
 
     # -------------------------------------------------------------------------
@@ -713,7 +713,7 @@ extremos :: Int -> [a] -> [a]
 ```
 """,
         solution="extremos n xs = take n xs ++ drop (length xs - n) xs",
-        starter_code="-- Define the extremos function\nextremos n xs = undefined",
+        starter_code="-- Define the extremos function\nextremos :: Int -> [a] -> [a]",
         tests=[
             TestCase(code="extremos 3 [2,6,7,1,2,4,5,8,9,2,3]", expected="[2,6,7,9,2,3]"),
             TestCase(code="extremos 1 [1,2,3,4,5]", expected="[1,5]"),
@@ -733,7 +733,7 @@ extremos 3 [2,6,7,1,2,4,5,8,9,2,3]  -- devuelve [2,6,7,9,2,3]
 extremos :: Int -> [a] -> [a]
 ```
 """,
-        starter_code_es="-- Definir la función extremos\nextremos n xs = undefined",
+        starter_code_es="-- Definir la función extremos\nextremos :: Int -> [a] -> [a]",
     ),
 
     # -------------------------------------------------------------------------
@@ -759,7 +759,7 @@ mediano :: (Num a, Ord a) => a -> a -> a -> a
 ```
 """,
         solution="mediano x y z = x + y + z - max x (max y z) - min x (min y z)",
-        starter_code="-- Define the mediano function\nmediano x y z = undefined",
+        starter_code="-- Define the mediano function\nmediano :: (Num a, Ord a) => a -> a -> a -> a",
         tests=[
             TestCase(code="mediano 3 2 5", expected="3"),
             TestCase(code="mediano 2 4 5", expected="4"),
@@ -782,7 +782,7 @@ mediano 2 6 6  -- devuelve 6
 mediano :: (Num a, Ord a) => a -> a -> a -> a
 ```
 """,
-        starter_code_es="-- Definir la función mediano\nmediano x y z = undefined",
+        starter_code_es="-- Definir la función mediano\nmediano :: (Num a, Ord a) => a -> a -> a -> a",
     ),
 
     # -------------------------------------------------------------------------
@@ -807,7 +807,7 @@ tresIguales :: Eq a => a -> a -> a -> Bool
 ```
 """,
         solution="tresIguales x y z = x == y && y == z",
-        starter_code="-- Define the tresIguales function\ntresIguales x y z = undefined",
+        starter_code="-- Define the tresIguales function\ntresIguales :: Eq a => a -> a -> a -> Bool",
         tests=[
             TestCase(code="tresIguales 4 4 4", expected="True"),
             TestCase(code="tresIguales 4 3 4", expected="False"),
@@ -829,7 +829,7 @@ tresIguales 4 3 4  -- devuelve False
 tresIguales :: Eq a => a -> a -> a -> Bool
 ```
 """,
-        starter_code_es="-- Definir la función tresIguales\ntresIguales x y z = undefined",
+        starter_code_es="-- Definir la función tresIguales\ntresIguales :: Eq a => a -> a -> a -> Bool",
     ),
 
     # -------------------------------------------------------------------------
@@ -854,7 +854,7 @@ tresDiferentes :: Eq a => a -> a -> a -> Bool
 ```
 """,
         solution="tresDiferentes x y z = x /= y && x /= z && y /= z",
-        starter_code="-- Define the tresDiferentes function\ntresDiferentes x y z = undefined",
+        starter_code="-- Define the tresDiferentes function\ntresDiferentes :: Eq a => a -> a -> a -> Bool",
         tests=[
             TestCase(code="tresDiferentes 3 5 2", expected="True"),
             TestCase(code="tresDiferentes 3 5 3", expected="False"),
@@ -876,7 +876,7 @@ tresDiferentes 3 5 3  -- devuelve False
 tresDiferentes :: Eq a => a -> a -> a -> Bool
 ```
 """,
-        starter_code_es="-- Definir la función tresDiferentes\ntresDiferentes x y z = undefined",
+        starter_code_es="-- Definir la función tresDiferentes\ntresDiferentes :: Eq a => a -> a -> a -> Bool",
     ),
 
     # -------------------------------------------------------------------------
@@ -901,7 +901,7 @@ cuatroIguales :: Eq a => a -> a -> a -> a -> Bool
 ```
 """,
         solution="cuatroIguales x y z w = x == y && y == z && z == w",
-        starter_code="-- Define the cuatroIguales function\ncuatroIguales x y z w = undefined",
+        starter_code="-- Define the cuatroIguales function\ncuatroIguales :: Eq a => a -> a -> a -> a -> Bool",
         tests=[
             TestCase(code="cuatroIguales 5 5 5 5", expected="True"),
             TestCase(code="cuatroIguales 5 5 4 5", expected="False"),
@@ -923,7 +923,7 @@ cuatroIguales 5 5 4 5  -- devuelve False
 cuatroIguales :: Eq a => a -> a -> a -> a -> Bool
 ```
 """,
-        starter_code_es="-- Definir la función cuatroIguales\ncuatroIguales x y z w = undefined",
+        starter_code_es="-- Definir la función cuatroIguales\ncuatroIguales :: Eq a => a -> a -> a -> a -> Bool",
     ),
 
     # -------------------------------------------------------------------------
@@ -951,7 +951,7 @@ triangular :: (Num a, Ord a) => a -> a -> a -> Bool
 ```
 """,
         solution="triangular a b c = a < b + c && b < a + c && c < a + b",
-        starter_code="-- Define the triangular function\ntriangular a b c = undefined",
+        starter_code="-- Define the triangular function\ntriangular :: (Num a, Ord a) => a -> a -> a -> Bool",
         tests=[
             TestCase(code="triangular 3 4 5", expected="True"),
             TestCase(code="triangular 30 4 5", expected="False"),
@@ -976,7 +976,7 @@ triangular 3 4 4   -- devuelve True
 triangular :: (Num a, Ord a) => a -> a -> a -> Bool
 ```
 """,
-        starter_code_es="-- Definir la función triangular\ntriangular a b c = undefined",
+        starter_code_es="-- Definir la función triangular\ntriangular :: (Num a, Ord a) => a -> a -> a -> Bool",
     ),
 
     # -------------------------------------------------------------------------
@@ -1001,7 +1001,7 @@ divisionSegura :: (Eq a, Fractional a) => a -> a -> a
 ```
 """,
         solution="divisionSegura x y\n  | y == 0    = 9999\n  | otherwise = x / y",
-        starter_code="-- Define the divisionSegura function\ndivisionSegura x y = undefined",
+        starter_code="-- Define the divisionSegura function\ndivisionSegura :: (Eq a, Fractional a) => a -> a -> a",
         tests=[
             TestCase(code="divisionSegura 7 2", expected="3.5"),
             TestCase(code="divisionSegura 7 0", expected="9999.0"),
@@ -1023,7 +1023,7 @@ divisionSegura 7 0  -- devuelve 9999.0
 divisionSegura :: (Eq a, Fractional a) => a -> a -> a
 ```
 """,
-        starter_code_es="-- Definir la función divisionSegura\ndivisionSegura x y = undefined",
+        starter_code_es="-- Definir la función divisionSegura\ndivisionSegura :: (Eq a, Fractional a) => a -> a -> a",
     ),
 
     # -------------------------------------------------------------------------
@@ -1048,7 +1048,7 @@ modulo :: Floating a => a -> a -> a
 ```
 """,
         solution="modulo x y = sqrt (x^2 + y^2)",
-        starter_code="-- Define the modulo function\nmodulo x y = undefined",
+        starter_code="-- Define the modulo function\nmodulo :: Floating a => a -> a -> a",
         tests=[
             TestCase(code="modulo 3 4", expected="5.0"),
             TestCase(code="modulo 1 0", expected="1.0"),
@@ -1070,7 +1070,7 @@ modulo 1 0  -- devuelve 1.0
 modulo :: Floating a => a -> a -> a
 ```
 """,
-        starter_code_es="-- Definir la función modulo\nmodulo x y = undefined",
+        starter_code_es="-- Definir la función modulo\nmodulo :: Floating a => a -> a -> a",
     ),
 
     # -------------------------------------------------------------------------
@@ -1095,7 +1095,7 @@ maxRect :: (Num a, Ord a) => (a, a) -> (a, a) -> (a, a)
 ```
 """,
         solution="maxRect (a, b) (c, d)\n  | a * b >= c * d = (a, b)\n  | otherwise      = (c, d)",
-        starter_code="-- Define the maxRect function\nmaxRect (a, b) (c, d) = undefined",
+        starter_code="-- Define the maxRect function\nmaxRect :: (Num a, Ord a) => (a, a) -> (a, a) -> (a, a)",
         tests=[
             TestCase(code="maxRect (4,6) (3,7)", expected="(4,6)"),
             TestCase(code="maxRect (2,3) (4,5)", expected="(4,5)"),
@@ -1117,7 +1117,7 @@ maxRect (2,3) (4,5)  -- devuelve (4,5)
 maxRect :: (Num a, Ord a) => (a, a) -> (a, a) -> (a, a)
 ```
 """,
-        starter_code_es="-- Definir la función maxRect\nmaxRect (a, b) (c, d) = undefined",
+        starter_code_es="-- Definir la función maxRect\nmaxRect :: (Num a, Ord a) => (a, a) -> (a, a) -> (a, a)",
     ),
 
     # -------------------------------------------------------------------------
@@ -1144,7 +1144,7 @@ cuadrante :: (Num a, Ord a) => (a, a) -> Int
 ```
 """,
         solution="cuadrante (x, y)\n  | x > 0 && y > 0 = 1\n  | x < 0 && y > 0 = 2\n  | x < 0 && y < 0 = 3\n  | otherwise       = 4",
-        starter_code="-- Define the cuadrante function\ncuadrante (x, y) = undefined",
+        starter_code="-- Define the cuadrante function\ncuadrante :: (Num a, Ord a) => (a, a) -> Int",
         tests=[
             TestCase(code="cuadrante (3, 5)", expected="1"),
             TestCase(code="cuadrante (-3, 5)", expected="2"),
@@ -1169,7 +1169,7 @@ cuadrante (3, -5)   -- devuelve 4
 cuadrante :: (Num a, Ord a) => (a, a) -> Int
 ```
 """,
-        starter_code_es="-- Definir la función cuadrante\ncuadrante (x, y) = undefined",
+        starter_code_es="-- Definir la función cuadrante\ncuadrante :: (Num a, Ord a) => (a, a) -> Int",
     ),
 
     # -------------------------------------------------------------------------
@@ -1194,7 +1194,7 @@ intercambia :: (a, b) -> (b, a)
 ```
 """,
         solution="intercambia (x, y) = (y, x)",
-        starter_code="-- Define the intercambia function\nintercambia (x, y) = undefined",
+        starter_code="-- Define the intercambia function\nintercambia :: (a, b) -> (b, a)",
         tests=[
             TestCase(code="intercambia (2, 5)", expected="(5,2)"),
             TestCase(code="intercambia (5, 2)", expected="(2,5)"),
@@ -1216,7 +1216,7 @@ intercambia (5, 2)  -- devuelve (2,5)
 intercambia :: (a, b) -> (b, a)
 ```
 """,
-        starter_code_es="-- Definir la función intercambia\nintercambia (x, y) = undefined",
+        starter_code_es="-- Definir la función intercambia\nintercambia :: (a, b) -> (b, a)",
     ),
 
     # -------------------------------------------------------------------------
@@ -1241,7 +1241,7 @@ simetricoH :: Num a => (a, a) -> (a, a)
 ```
 """,
         solution="simetricoH (x, y) = (x, -y)",
-        starter_code="-- Define the simetricoH function\nsimetricoH (x, y) = undefined",
+        starter_code="-- Define the simetricoH function\nsimetricoH :: Num a => (a, a) -> (a, a)",
         tests=[
             TestCase(code="simetricoH (2, 5)", expected="(2,-5)"),
             TestCase(code="simetricoH (3, -4)", expected="(3,4)"),
@@ -1263,7 +1263,7 @@ simetricoH (3, -4)   -- devuelve (3,4)
 simetricoH :: Num a => (a, a) -> (a, a)
 ```
 """,
-        starter_code_es="-- Definir la función simetricoH\nsimetricoH (x, y) = undefined",
+        starter_code_es="-- Definir la función simetricoH\nsimetricoH :: Num a => (a, a) -> (a, a)",
     ),
 
     # -------------------------------------------------------------------------
@@ -1288,7 +1288,7 @@ distancia :: Floating a => (a, a) -> (a, a) -> a
 ```
 """,
         solution="distancia (x1, y1) (x2, y2) = sqrt ((x2-x1)^2 + (y2-y1)^2)",
-        starter_code="-- Define the distancia function\ndistancia (x1, y1) (x2, y2) = undefined",
+        starter_code="-- Define the distancia function\ndistancia :: Floating a => (a, a) -> (a, a) -> a",
         tests=[
             TestCase(code="distancia (1, 2) (4, 6)", expected="5.0"),
             TestCase(code="distancia (0, 0) (3, 4)", expected="5.0"),
@@ -1310,7 +1310,7 @@ distancia (0, 0) (3, 4)  -- devuelve 5.0
 distancia :: Floating a => (a, a) -> (a, a) -> a
 ```
 """,
-        starter_code_es="-- Definir la función distancia\ndistancia (x1, y1) (x2, y2) = undefined",
+        starter_code_es="-- Definir la función distancia\ndistancia :: Floating a => (a, a) -> (a, a) -> a",
     ),
 
     # -------------------------------------------------------------------------
@@ -1335,7 +1335,7 @@ puntoMedio :: Fractional a => (a, a) -> (a, a) -> (a, a)
 ```
 """,
         solution="puntoMedio (x1, y1) (x2, y2) = ((x1+x2)/2, (y1+y2)/2)",
-        starter_code="-- Define the puntoMedio function\npuntoMedio (x1, y1) (x2, y2) = undefined",
+        starter_code="-- Define the puntoMedio function\npuntoMedio :: Fractional a => (a, a) -> (a, a) -> (a, a)",
         tests=[
             TestCase(code="puntoMedio (0, 2) (0, 6)", expected="(0.0,4.0)"),
             TestCase(code="puntoMedio (2, 4) (6, 8)", expected="(4.0,6.0)"),
@@ -1356,7 +1356,7 @@ puntoMedio (2, 4) (6, 8)  -- devuelve (4.0,6.0)
 puntoMedio :: Fractional a => (a, a) -> (a, a) -> (a, a)
 ```
 """,
-        starter_code_es="-- Definir la función puntoMedio\npuntoMedio (x1, y1) (x2, y2) = undefined",
+        starter_code_es="-- Definir la función puntoMedio\npuntoMedio :: Fractional a => (a, a) -> (a, a) -> (a, a)",
     ),
 
     # -------------------------------------------------------------------------
@@ -1381,7 +1381,7 @@ sumaComplejos :: Num a => (a, a) -> (a, a) -> (a, a)
 ```
 """,
         solution="sumaComplejos (a, b) (c, d) = (a+c, b+d)",
-        starter_code="-- Define the sumaComplejos function\nsumaComplejos (a, b) (c, d) = undefined",
+        starter_code="-- Define the sumaComplejos function\nsumaComplejos :: Num a => (a, a) -> (a, a) -> (a, a)",
         tests=[
             TestCase(code="sumaComplejos (2, 3) (5, 6)", expected="(7,9)"),
             TestCase(code="sumaComplejos (1, -2) (-1, 2)", expected="(0,0)"),
@@ -1402,7 +1402,7 @@ sumaComplejos (1, -2) (-1, 2)  -- devuelve (0,0)
 sumaComplejos :: Num a => (a, a) -> (a, a) -> (a, a)
 ```
 """,
-        starter_code_es="-- Definir la función sumaComplejos\nsumaComplejos (a, b) (c, d) = undefined",
+        starter_code_es="-- Definir la función sumaComplejos\nsumaComplejos :: Num a => (a, a) -> (a, a) -> (a, a)",
     ),
 
     # -------------------------------------------------------------------------
@@ -1427,7 +1427,7 @@ productoComplejos :: Num a => (a, a) -> (a, a) -> (a, a)
 ```
 """,
         solution="productoComplejos (a, b) (c, d) = (a*c - b*d, a*d + b*c)",
-        starter_code="-- Define the productoComplejos function\nproductoComplejos (a, b) (c, d) = undefined",
+        starter_code="-- Define the productoComplejos function\nproductoComplejos :: Num a => (a, a) -> (a, a) -> (a, a)",
         tests=[
             TestCase(code="productoComplejos (2, 3) (5, 6)", expected="(-8,27)"),
             TestCase(code="productoComplejos (1, 0) (5, 3)", expected="(5,3)"),
@@ -1448,7 +1448,7 @@ productoComplejos (1, 0) (5, 3)  -- devuelve (5,3)
 productoComplejos :: Num a => (a, a) -> (a, a) -> (a, a)
 ```
 """,
-        starter_code_es="-- Definir la función productoComplejos\nproductoComplejos (a, b) (c, d) = undefined",
+        starter_code_es="-- Definir la función productoComplejos\nproductoComplejos :: Num a => (a, a) -> (a, a) -> (a, a)",
     ),
 
     # -------------------------------------------------------------------------
@@ -1473,7 +1473,7 @@ conjugado :: Num a => (a, a) -> (a, a)
 ```
 """,
         solution="conjugado (a, b) = (a, -b)",
-        starter_code="-- Define the conjugado function\nconjugado (a, b) = undefined",
+        starter_code="-- Define the conjugado function\nconjugado :: Num a => (a, a) -> (a, a)",
         tests=[
             TestCase(code="conjugado (2, 3)", expected="(2,-3)"),
             TestCase(code="conjugado (0, 0)", expected="(0,0)"),
@@ -1495,7 +1495,7 @@ conjugado (0, 0)  -- devuelve (0,0)
 conjugado :: Num a => (a, a) -> (a, a)
 ```
 """,
-        starter_code_es="-- Definir la función conjugado\nconjugado (a, b) = undefined",
+        starter_code_es="-- Definir la función conjugado\nconjugado :: Num a => (a, a) -> (a, a)",
     ),
 
     # -------------------------------------------------------------------------
@@ -1519,7 +1519,7 @@ intercala :: [a] -> [a] -> [a]
 ```
 """,
         solution="intercala [x1, x2] [y1, y2] = [x1, y1, x2, y2]",
-        starter_code="-- Define the intercala function\nintercala xs ys = undefined",
+        starter_code="-- Define the intercala function\nintercala :: [a] -> [a] -> [a]",
         tests=[
             TestCase(code="intercala [1, 4] [3, 2]", expected="[1,3,4,2]"),
             TestCase(code="intercala [0, 0] [1, 1]", expected="[0,1,0,1]"),
@@ -1539,7 +1539,7 @@ intercala [1, 4] [3, 2]  -- devuelve [1,3,4,2]
 intercala :: [a] -> [a] -> [a]
 ```
 """,
-        starter_code_es="-- Definir la función intercala\nintercala xs ys = undefined",
+        starter_code_es="-- Definir la función intercala\nintercala :: [a] -> [a] -> [a]",
     ),
 
     # -------------------------------------------------------------------------
@@ -1564,7 +1564,7 @@ ciclo :: [a] -> [a]
 ```
 """,
         solution="ciclo xs = last xs : init xs",
-        starter_code="-- Define the ciclo function\nciclo xs = undefined",
+        starter_code="-- Define the ciclo function\nciclo :: [a] -> [a]",
         tests=[
             TestCase(code="ciclo [2, 5, 7, 9]", expected="[9,2,5,7]"),
             TestCase(code="ciclo [1, 2, 3]", expected="[3,1,2]"),
@@ -1586,7 +1586,7 @@ ciclo [1, 2, 3]     -- devuelve [3,1,2]
 ciclo :: [a] -> [a]
 ```
 """,
-        starter_code_es="-- Definir la función ciclo\nciclo xs = undefined",
+        starter_code_es="-- Definir la función ciclo\nciclo :: [a] -> [a]",
     ),
 
     # -------------------------------------------------------------------------
@@ -1611,7 +1611,7 @@ mayorNumero :: (Num a, Ord a) => a -> a -> a
 ```
 """,
         solution="mayorNumero x y = 10 * max x y + min x y",
-        starter_code="-- Define the mayorNumero function\nmayorNumero x y = undefined",
+        starter_code="-- Define the mayorNumero function\nmayorNumero :: (Num a, Ord a) => a -> a -> a",
         tests=[
             TestCase(code="mayorNumero 2 5", expected="52"),
             TestCase(code="mayorNumero 5 2", expected="52"),
@@ -1633,7 +1633,7 @@ mayorNumero 5 2  -- devuelve 52
 mayorNumero :: (Num a, Ord a) => a -> a -> a
 ```
 """,
-        starter_code_es="-- Definir la función mayorNumero\nmayorNumero x y = undefined",
+        starter_code_es="-- Definir la función mayorNumero\nmayorNumero :: (Num a, Ord a) => a -> a -> a",
     ),
 
     # -------------------------------------------------------------------------
@@ -1659,7 +1659,7 @@ numRaices :: (Num a, Ord a) => a -> a -> a -> Int
 ```
 """,
         solution="numRaices a b c\n  | d > 0     = 2\n  | d == 0    = 1\n  | otherwise = 0\n  where d = b*b - 4*a*c",
-        starter_code="-- Define the numRaices function\nnumRaices a b c = undefined",
+        starter_code="-- Define the numRaices function\nnumRaices :: (Num a, Ord a) => a -> a -> a -> Int",
         tests=[
             TestCase(code="numRaices 2 0 3", expected="0"),
             TestCase(code="numRaices 4 4 1", expected="1"),
@@ -1682,7 +1682,7 @@ numRaices 5 23 12  -- devuelve 2
 numRaices :: (Num a, Ord a) => a -> a -> a -> Int
 ```
 """,
-        starter_code_es="-- Definir la función numRaices\nnumRaices a b c = undefined",
+        starter_code_es="-- Definir la función numRaices\nnumRaices :: (Num a, Ord a) => a -> a -> a -> Int",
     ),
 
     # -------------------------------------------------------------------------
@@ -1708,7 +1708,7 @@ raices :: Double -> Double -> Double -> [Double]
 ```
 """,
         solution="raices a b c\n  | d >= 0    = [(-b + sqrt d) / (2*a), (-b - sqrt d) / (2*a)]\n  | otherwise = []\n  where d = b*b - 4*a*c",
-        starter_code="-- Define the raices function\nraices a b c = undefined",
+        starter_code="-- Define the raices function\nraices :: Double -> Double -> Double -> [Double]",
         tests=[
             TestCase(code="raices 1 3 2", expected="[-1.0,-2.0]"),
             TestCase(code="raices 1 (-2) 1", expected="[1.0,1.0]"),
@@ -1731,7 +1731,7 @@ raices 1 0 1       -- devuelve []
 raices :: Double -> Double -> Double -> [Double]
 ```
 """,
-        starter_code_es="-- Definir la función raices\nraices a b c = undefined",
+        starter_code_es="-- Definir la función raices\nraices :: Double -> Double -> Double -> [Double]",
     ),
 
     # -------------------------------------------------------------------------
@@ -1757,7 +1757,7 @@ areaHeron :: Floating a => a -> a -> a -> a
 ```
 """,
         solution="areaHeron a b c = sqrt (s * (s-a) * (s-b) * (s-c))\n  where s = (a + b + c) / 2",
-        starter_code="-- Define the areaHeron function\nareaHeron a b c = undefined",
+        starter_code="-- Define the areaHeron function\nareaHeron :: Floating a => a -> a -> a -> a",
         tests=[
             TestCase(code="areaHeron 3 4 5", expected="6.0"),
         ],
@@ -1778,7 +1778,7 @@ areaHeron 3 4 5  -- devuelve 6.0
 areaHeron :: Floating a => a -> a -> a -> a
 ```
 """,
-        starter_code_es="-- Definir la función areaHeron\nareaHeron a b c = undefined",
+        starter_code_es="-- Definir la función areaHeron\nareaHeron :: Floating a => a -> a -> a -> a",
     ),
 
     # -------------------------------------------------------------------------
@@ -1803,7 +1803,7 @@ formaReducida :: Integral a => (a, a) -> (a, a)
 ```
 """,
         solution="formaReducida (a, b) = (a `div` d, b `div` d)\n  where d = gcd a b",
-        starter_code="-- Define the formaReducida function\nformaReducida (a, b) = undefined",
+        starter_code="-- Define the formaReducida function\nformaReducida :: Integral a => (a, a) -> (a, a)",
         tests=[
             TestCase(code="formaReducida (4, 10)", expected="(2,5)"),
             TestCase(code="formaReducida (0, 5)", expected="(0,1)"),
@@ -1825,7 +1825,7 @@ formaReducida (0, 5)   -- devuelve (0,1)
 formaReducida :: Integral a => (a, a) -> (a, a)
 ```
 """,
-        starter_code_es="-- Definir la función formaReducida\nformaReducida (a, b) = undefined",
+        starter_code_es="-- Definir la función formaReducida\nformaReducida :: Integral a => (a, a) -> (a, a)",
     ),
 
     # -------------------------------------------------------------------------
@@ -1849,7 +1849,7 @@ sumaRacional :: Integral a => (a, a) -> (a, a) -> (a, a)
 ```
 """,
         solution="sumaRacional (a, b) (c, d) = (num `div` g, den `div` g)\n  where num = a*d + b*c\n        den = b*d\n        g = gcd num den",
-        starter_code="-- Define the sumaRacional function\nsumaRacional (a, b) (c, d) = undefined",
+        starter_code="-- Define the sumaRacional function\nsumaRacional :: Integral a => (a, a) -> (a, a) -> (a, a)",
         tests=[
             TestCase(code="sumaRacional (2, 3) (5, 6)", expected="(3,2)"),
             TestCase(code="sumaRacional (1, 2) (1, 2)", expected="(1,1)"),
@@ -1869,7 +1869,7 @@ sumaRacional (2, 3) (5, 6)  -- devuelve (3,2)
 sumaRacional :: Integral a => (a, a) -> (a, a) -> (a, a)
 ```
 """,
-        starter_code_es="-- Definir la función sumaRacional\nsumaRacional (a, b) (c, d) = undefined",
+        starter_code_es="-- Definir la función sumaRacional\nsumaRacional :: Integral a => (a, a) -> (a, a) -> (a, a)",
     ),
 
     # -------------------------------------------------------------------------
@@ -1893,7 +1893,7 @@ productoRacional :: Integral a => (a, a) -> (a, a) -> (a, a)
 ```
 """,
         solution="productoRacional (a, b) (c, d) = (num `div` g, den `div` g)\n  where num = a*c\n        den = b*d\n        g = gcd num den",
-        starter_code="-- Define the productoRacional function\nproductoRacional (a, b) (c, d) = undefined",
+        starter_code="-- Define the productoRacional function\nproductoRacional :: Integral a => (a, a) -> (a, a) -> (a, a)",
         tests=[
             TestCase(code="productoRacional (2, 3) (5, 6)", expected="(5,9)"),
             TestCase(code="productoRacional (1, 2) (2, 1)", expected="(1,1)"),
@@ -1913,7 +1913,7 @@ productoRacional (2, 3) (5, 6)  -- devuelve (5,9)
 productoRacional :: Integral a => (a, a) -> (a, a) -> (a, a)
 ```
 """,
-        starter_code_es="-- Definir la función productoRacional\nproductoRacional (a, b) (c, d) = undefined",
+        starter_code_es="-- Definir la función productoRacional\nproductoRacional :: Integral a => (a, a) -> (a, a) -> (a, a)",
     ),
 
     # -------------------------------------------------------------------------
@@ -1938,7 +1938,7 @@ igualdadRacional :: (Eq a, Num a) => (a, a) -> (a, a) -> Bool
 ```
 """,
         solution="igualdadRacional (a, b) (c, d) = a*d == b*c",
-        starter_code="-- Define the igualdadRacional function\nigualdadRacional (a, b) (c, d) = undefined",
+        starter_code="-- Define the igualdadRacional function\nigualdadRacional :: (Eq a, Num a) => (a, a) -> (a, a) -> Bool",
         tests=[
             TestCase(code="igualdadRacional (1, 2) (2, 4)", expected="True"),
             TestCase(code="igualdadRacional (1, 2) (3, 5)", expected="False"),
@@ -1960,6 +1960,6 @@ igualdadRacional (1, 2) (3, 5)  -- devuelve False
 igualdadRacional :: (Eq a, Num a) => (a, a) -> (a, a) -> Bool
 ```
 """,
-        starter_code_es="-- Definir la función igualdadRacional\nigualdadRacional (a, b) (c, d) = undefined",
+        starter_code_es="-- Definir la función igualdadRacional\nigualdadRacional :: (Eq a, Num a) => (a, a) -> (a, a) -> Bool",
     ),
 }
