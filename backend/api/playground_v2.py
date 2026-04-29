@@ -14,17 +14,21 @@ from typing import List, Optional
 from uuid import uuid4
 from subprocess import Popen
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from api.playground import (
     _start_ghci_process,
+    _localized_description,
+    _localized_starter_code,
+    _localized_title,
     read_until_prompt,
     read_output,
     drain_pipe,
     is_dangerous_command,
     strip_ghci_continuation_prompts,
 )
-from schemas.playground import EvalRequestV2
+from challenges import CHALLENGES
+from schemas.playground import EvalRequestV2, SubmitRequest, TestResult
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +83,14 @@ class Worker:
         """Kill any existing process and start a new GHCi."""
         self._kill_process()
         self.process = _start_ghci_process()
-        await read_until_prompt(self.process, timeout=GHCI_STARTUP_TIMEOUT)
+        try:
+            await read_until_prompt(
+                self.process,
+                timeout=GHCI_STARTUP_TIMEOUT,
+            )
+        except Exception:
+            self._kill_process()
+            raise
         logger.info(
             f"Worker {self.worker_id}: started fresh "
             f"GHCi (pid={self.process.pid})"
@@ -179,6 +190,91 @@ class Worker:
 
         return strip_ghci_continuation_prompts(output)
 
+    async def submit_challenge(self, challenge, code: str) -> List[TestResult]:
+        """
+        Reset worker state, load submitted code, and run challenge tests.
+
+        Challenge submissions are independent requests, so no command
+        history is replayed.
+        """
+        if not self._is_alive():
+            await self._start_fresh()
+
+        try:
+            await self._reset_state()
+        except Exception:
+            await self._start_fresh()
+
+        formatted_code = EvalRequestV2.format_command(code)
+        try:
+            drain_pipe(self.process.stdout)
+            self.process.stdin.write(formatted_code)
+            self.process.stdin.flush()
+            load_output = await read_output(
+                self.process, timeout=EVAL_CMD_TIMEOUT,
+            )
+        except Exception as e:
+            self._kill_process()
+            raise Exception(
+                "GHCi process terminated "
+                f"unexpectedly: {e}"
+            )
+
+        if self.process.poll() is not None:
+            self._kill_process()
+            raise Exception(
+                "GHCi process terminated unexpectedly"
+            )
+
+        cleaned_load_output = strip_ghci_continuation_prompts(load_output)
+        if (
+            "error" in cleaned_load_output.lower()
+            or "not in scope" in cleaned_load_output.lower()
+        ):
+            raise ValueError(
+                f"Failed to load your code:\n{cleaned_load_output}"
+            )
+
+        results: List[TestResult] = []
+        for i, test in enumerate(challenge.tests):
+            try:
+                drain_pipe(self.process.stdout)
+                self.process.stdin.write(test.code + "\n")
+                self.process.stdin.flush()
+                output = await read_output(
+                    self.process, timeout=HISTORY_CMD_TIMEOUT,
+                )
+                actual = strip_ghci_continuation_prompts(output).strip()
+                passed = actual == test.expected
+                results.append(
+                    TestResult(
+                        passed=passed,
+                        test_code=test.code,
+                        expected=test.expected,
+                        actual=actual,
+                    )
+                )
+            except Exception as e:
+                logger.error(f"Test {i + 1} error: {e}")
+                self._kill_process()
+                results.append(
+                    TestResult(
+                        passed=False,
+                        test_code=test.code,
+                        expected=test.expected,
+                        actual=f"Error: {str(e)}",
+                    )
+                )
+                break
+
+            if self.process.poll() is not None:
+                self._kill_process()
+                raise Exception(
+                    "GHCi process terminated unexpectedly"
+                )
+
+        return results
+
 
 class WorkerPool:
     """Fixed-size pool of GHCi workers backed by asyncio.Queue."""
@@ -277,3 +373,80 @@ async def evaluate_v2(session_id: str, request: EvalRequestV2):
 async def close_session_v2(session_id: str):
     """No-op for v2 — workers are shared, not per-session."""
     return {"status": "Session closed"}
+
+
+@router.get("/challenges")
+async def list_challenges_v2(
+    lang: str = Query("en", description="Language code (en, es)"),
+):
+    return {
+        "challenges": [
+            {"id": c.id, "title": _localized_title(c, lang)}
+            for c in CHALLENGES.values()
+        ]
+    }
+
+
+@router.get("/challenges/{challenge_id}")
+async def get_challenge_v2(
+    challenge_id: str,
+    lang: str = Query("en", description="Language code (en, es)"),
+):
+    if challenge_id not in CHALLENGES:
+        return {"error": "Challenge not found"}
+    challenge = CHALLENGES[challenge_id]
+    return {
+        "id": challenge.id,
+        "title": _localized_title(challenge, lang),
+        "description": _localized_description(challenge, lang),
+        "starter_code": _localized_starter_code(challenge, lang),
+        "test_count": len(challenge.tests),
+    }
+
+
+@router.post("/challenges/{challenge_id}/submit")
+async def submit_challenge_v2(
+    challenge_id: str,
+    request: SubmitRequest,
+):
+    if challenge_id not in CHALLENGES:
+        return {"error": "Challenge not found"}
+
+    is_dangerous, matched_cmd = is_dangerous_command(request.code)
+    if is_dangerous:
+        logger.warning(
+            "Blocked dangerous command "
+            f"'{matched_cmd}' in challenge submission"
+        )
+        return {
+            "error": (
+                f"Command '{matched_cmd}' is not allowed "
+                "for security reasons"
+            )
+        }
+
+    wp = await get_pool()
+    try:
+        worker = await wp.acquire(timeout=ACQUIRE_TIMEOUT)
+    except asyncio.TimeoutError:
+        return {"error": "Server busy, please try again later"}
+
+    try:
+        results = await worker.submit_challenge(
+            CHALLENGES[challenge_id],
+            request.code,
+        )
+        passed_count = sum(1 for r in results if r.passed)
+        return {
+            "results": [r.model_dump() for r in results],
+            "passed": passed_count,
+            "total": len(results),
+            "all_passed": passed_count == len(results),
+        }
+    except ValueError as e:
+        return {"error": str(e), "results": []}
+    except Exception as e:
+        logger.error(f"Challenge submit error: {e}")
+        return {"error": str(e), "results": []}
+    finally:
+        await wp.release(worker)

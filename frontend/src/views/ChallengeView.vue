@@ -7,7 +7,7 @@ import { marked } from 'marked'
 import CodeEditor from '../components/CodeEditor.vue'
 import { getChallengeProgress, setChallengeProgress, setLastViewedChallengeId } from '../stores/challengeProgress.js'
 
-const API_BASE = '/api/playground'
+const API_BASE = '/api/v2/playground'
 const route = useRoute()
 const router = useRouter()
 const { t, locale } = useI18n()
@@ -79,7 +79,7 @@ watch(locale, () => {
   if (route.params.id) fetchChallenge()
 })
 
-// Submit solution for testing (server spawns GHCi, runs tests, then closes process)
+// Submit solution for testing. The v2 API resets a shared worker per request.
 async function submitSolution() {
   isSubmitting.value = true
   errorMessage.value = ''
