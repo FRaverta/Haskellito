@@ -111,8 +111,14 @@ async def read_until_prompt(process: Popen, timeout: float = 10.0) -> str:
 
         chunk = os.read(fd, 4096)
         if not chunk:
-            logger.warning("EOF reached while reading from GHCi")
-            break
+            return_code = process.poll()
+            message = "EOF reached while reading from GHCi before prompt"
+            if return_code is not None:
+                message += f" (returncode={return_code})"
+            if buffer.strip():
+                message += f"; output: {buffer.strip()}"
+            logger.warning(message)
+            raise Exception(message)
 
         buffer += chunk.decode(errors="replace")
         if buffer.endswith(GHCI_PROMPT):
