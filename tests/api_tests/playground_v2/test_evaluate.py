@@ -71,14 +71,85 @@ HASKELL_EVAL_CASES = [
         expected_response={"output": '["hello ada","hello grace"]'},
     ),
     HaskellEvalCase(
-        name="list transformation with a named helper",
-        history="""
-            data BTree a = Leaf | Node a (BTree a) (BTree a) deriving Show
-            t1 = Node 2 Leaf Leaf
-            """.split("\n"),
+        name="binary tree declaration in command history",
+        history=[
+            haskell(
+                """
+                data BTree a = Leaf | Node a (BTree a) (BTree a) deriving Show
+                t1 = Node 2 Leaf Leaf
+                """
+            ),
+        ],
         code='t1',
         expected_response={"output": 'Node 2 Leaf Leaf'},
     ),
+    HaskellEvalCase(
+        name="sorts a list using an import in command history",
+        history=[
+            haskell(
+                """
+                import Data.List (sort)
+                """
+            ),
+        ],
+        code='sort [20,10,15]',
+        expected_response={"output": '[10,15,20]'},
+    ),
+    HaskellEvalCase(
+        name="builds an ordered set from a list",
+        history=[
+            haskell(
+                """
+                import Data.List (sort)
+
+                type Conjunto a = [a]
+
+                eliminar_duplicados :: Ord a => [a] -> Conjunto a
+                eliminar_duplicados = eliminar_duplicados_ordenados . sort
+
+                eliminar_duplicados_ordenados :: Ord a => [a] -> [a]
+                eliminar_duplicados_ordenados [] = []
+                eliminar_duplicados_ordenados [x] = [x]
+                eliminar_duplicados_ordenados (x:y:xs)
+                  | x == y = eliminar_duplicados_ordenados (y:xs)
+                  | otherwise = x : eliminar_duplicados_ordenados (y:xs)
+                """
+            ),
+        ],
+        code='eliminar_duplicados [20,10,20,1,2,15,1,2]',
+        expected_response={"output": '[1,2,10,15,20]'},
+    ),
+    HaskellEvalCase(
+        name="union of two sets",
+        history=[
+            haskell(
+                """
+                import Data.List (sort)
+                type Conjunto a = [a]
+
+                eliminar_duplicados :: Ord a => [a]  -> [a]
+                -- precondicion: la lista de entrada esta ordenada
+                eliminar_duplicados [] = []
+                eliminar_duplicados [x] = [x]
+                eliminar_duplicados (x:y:xs) | x == y = eliminar_duplicados (y:xs)
+                                                                | otherwise = x : eliminar_duplicados (y:xs)
+
+                crear_conjunto :: Ord a => [a] -> Conjunto a
+                crear_conjunto c = eliminar_duplicados (sort c) 
+
+                union :: Ord a => Conjunto a -> Conjunto a -> Conjunto a
+                union c1 [] = c1
+                union [] c2 = c2
+                union (x:xs) (y:ys) | x == y = x   : (union xs ys)
+                                                | x < y = x : (union xs (y:ys))
+                                                | x > y = y :  (union (x:xs) ys)
+            """
+            ),
+        ],
+        code='union (crear_conjunto [1,-2,-3,1,2,3,-2]) (crear_conjunto [2,3,4,2,1,100])',
+        expected_response={"output": '[-3,-2,1,2,3,4,100]'},
+    ),
+
 ]
 
 
