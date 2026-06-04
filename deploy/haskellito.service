@@ -7,7 +7,9 @@ Type=simple
 User=haskellito
 Group=haskellito
 WorkingDirectory=/opt/Haskellito/backend
-Environment="PATH=/opt/Haskellito/backend/venv/bin:/usr/bin"
+Environment="PATH=/opt/Haskellito/backend/venv/bin:/opt/ghcup/.ghcup/bin:/usr/bin"
+Environment="GHCI_HOME=/tmp"
+Environment="GHCI_TMPDIR=/tmp"
 ExecStart=/opt/Haskellito/backend/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
 Restart=always
 RestartSec=5
