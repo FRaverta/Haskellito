@@ -77,10 +77,10 @@ def drain_pipe(pipe) -> str:
             ready, _, _ = select.select([fd], [], [], 0)
             if not ready:
                 break
-            chunk = pipe.read(1024)
+            chunk = os.read(fd, 4096)
             if not chunk:
                 break
-            drained.append(chunk)
+            drained.append(chunk.decode(errors="replace"))
     except (BlockingIOError, IOError):
         pass
     finally:
@@ -97,22 +97,28 @@ async def read_until_prompt(process: Popen, timeout: float = 10.0) -> str:
         if elapsed >= timeout:
             logger.warning(f"read_until_prompt timed out after {timeout}s")
             raise Exception(f"read_until_prompt timed out after {timeout}s")
-        remaining_timeout = timeout - elapsed
-        try:
-            char = await asyncio.wait_for(
-                asyncio.to_thread(lambda: process.stdout.read(1)),
-                timeout=min(remaining_timeout, 0.5),
-            )
-            if not char:
-                logger.warning("EOF reached while reading from GHCi")
-                break
-            buffer += char
-            if buffer.endswith(GHCI_PROMPT):
-                result = buffer[:-len(GHCI_PROMPT)].strip()
-                logger.info(f"Got output before prompt: {result}")
-                return result
-        except asyncio.TimeoutError:
+        wait_time = min(timeout - elapsed, 0.1)
+        fd = process.stdout.fileno()
+        ready, _, _ = await asyncio.to_thread(
+            select.select,
+            [fd],
+            [],
+            [],
+            wait_time,
+        )
+        if not ready:
             continue
+
+        chunk = os.read(fd, 4096)
+        if not chunk:
+            logger.warning("EOF reached while reading from GHCi")
+            break
+
+        buffer += chunk.decode(errors="replace")
+        if buffer.endswith(GHCI_PROMPT):
+            result = buffer[:-len(GHCI_PROMPT)].strip()
+            logger.info(f"Got output before prompt: {result}")
+            return result
     return buffer.strip()
 
 
