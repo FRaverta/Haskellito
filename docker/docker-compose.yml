@@ -1,7 +1,7 @@
 # Haskellito Local Development Environment
 # Usage: from repo root: docker compose -f docker/docker-compose.yml up
 # Frontend: http://localhost:5173
-# Backend API: http://localhost:8000
+# Backend API: http://localhost:8001
 
 services:
   backend:
@@ -9,12 +9,16 @@ services:
       context: ..
       dockerfile: docker/Dockerfile
     ports:
-      - "8000:8000"
+      - "8001:8001"
     volumes:
       # Mount backend for hot reload during development
       - ../backend:/app:ro
     environment:
       - PYTHONUNBUFFERED=1
+      - COGNITO_AUTH_ENABLED=true
+      - COGNITO_REGION=us-east-1
+      - COGNITO_USER_POOL_ID=us-east-1_dwg2mt4BF
+      - COGNITO_APP_CLIENT_ID=3akv2gdc854btlb5g6057bf67j
     # Security restrictions for GHCi sandboxing
     security_opt:
       - no-new-privileges:true
@@ -43,7 +47,11 @@ services:
       - frontend_node_modules:/app/node_modules
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     environment:
-      - VITE_API_URL=http://backend:8000
+      - VITE_API_URL=http://backend:8001
+      - VITE_AUTH_ENABLED=true
+      - VITE_COGNITO_DOMAIN=https://us-east-1dwg2mt4bf.auth.us-east-1.amazoncognito.com
+      - VITE_COGNITO_APP_CLIENT_ID=3akv2gdc854btlb5g6057bf67j
+      - VITE_COGNITO_REDIRECT_URI=http://localhost:5173/auth/callback
     depends_on:
       - backend
     restart: unless-stopped

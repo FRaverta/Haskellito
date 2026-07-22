@@ -6,6 +6,11 @@ __pycache__/
 .Python
 venv/
 .env
+.env.*
+
+# Local OAuth credentials
+client_secret_*.json
+google-client_secret_*.json
 
 # Node
 node_modules/

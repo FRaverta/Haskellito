@@ -145,6 +145,52 @@ This sets up:
   - `CapabilityBoundingSet=` - All capabilities dropped
   - System call filtering and namespace restrictions
 
+### Authentication with AWS Cognito
+
+The app can stay public for browsing while requiring login only for execution:
+creating GHCi sessions, evaluating code, closing sessions, and submitting
+challenge solutions.
+
+In Cognito, configure a User Pool app client for a browser SPA:
+
+- Use a public app client with no client secret.
+- Enable the authorization-code grant. The frontend uses PKCE.
+- Enable scopes: `openid`, `email`, `profile`.
+- Enable Google as the app client's identity provider.
+- Add callback URLs:
+  - local: `http://localhost:5173/auth/callback`
+  - production: `https://<your-domain>/auth/callback`
+- Add logout URLs:
+  - local: `http://localhost:5173/`
+  - production: `https://<your-domain>/`
+- In Google OAuth, add the Cognito redirect URI:
+  `https://<your-cognito-domain>/oauth2/idpresponse`
+
+Frontend build-time environment:
+
+```bash
+VITE_AUTH_ENABLED=true
+VITE_COGNITO_DOMAIN=https://<your-cognito-domain>
+VITE_COGNITO_APP_CLIENT_ID=<app-client-id>
+VITE_COGNITO_REDIRECT_URI=https://<your-domain>/auth/callback
+VITE_COGNITO_LOGOUT_URI=https://<your-domain>/
+VITE_COGNITO_IDENTITY_PROVIDER=Google
+```
+
+Backend runtime environment:
+
+```bash
+COGNITO_AUTH_ENABLED=true
+COGNITO_REGION=<aws-region>
+COGNITO_USER_POOL_ID=<user-pool-id>
+COGNITO_APP_CLIENT_ID=<app-client-id>
+CORS_ALLOW_ORIGINS=https://<your-domain>
+```
+
+If `COGNITO_AUTH_ENABLED` is omitted, the backend enables auth automatically
+when both `COGNITO_USER_POOL_ID` and `COGNITO_APP_CLIENT_ID` are present.
+Without these variables, local development remains unauthenticated.
+
 ## API Endpoints
 
 | Method | Endpoint | Description |
