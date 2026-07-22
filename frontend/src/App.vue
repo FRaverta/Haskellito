@@ -225,49 +225,49 @@ onBeforeUnmount(() => {
               ES
             </button>
           </span>
-          <div v-if="authEnabled" ref="accountMenuRef" class="account-menu">
-            <button
-              type="button"
-              class="account-menu-button"
-              :aria-expanded="accountMenuOpen"
-              :aria-label="t('auth.accountMenu')"
-              aria-haspopup="menu"
-              @click.stop="toggleAccountMenu"
-            >
-              <span class="account-avatar" aria-hidden="true">{{ accountInitial }}</span>
-              <span class="account-label">{{ accountButtonLabel }}</span>
-              <span class="account-caret" aria-hidden="true"></span>
-            </button>
-            <div v-if="accountMenuOpen" class="account-popover" role="menu">
-              <div v-if="isAuthenticated" class="account-user">
-                {{ userDisplayName || t('auth.signedIn') }}
-              </div>
-              <button
-                v-if="isAuthenticated"
-                type="button"
-                class="account-menu-item"
-                role="menuitem"
-                @click="handleSignOut"
-              >
-                {{ t('auth.logout') }}
-              </button>
-              <button
-                v-else
-                type="button"
-                class="account-menu-item"
-                role="menuitem"
-                :disabled="loginInProgress"
-                @click="handleSignIn"
-              >
-                {{ loginInProgress ? t('auth.loggingIn') : t('auth.login') }}
-              </button>
-              <p v-if="authError" class="account-error">
-                {{ authError }}
-              </p>
-            </div>
-          </div>
         </div>
       </nav>
+      <div v-if="authEnabled" ref="accountMenuRef" class="account-menu">
+        <button
+          type="button"
+          class="account-menu-button"
+          :aria-expanded="accountMenuOpen"
+          :aria-label="t('auth.accountMenu')"
+          aria-haspopup="menu"
+          @click.stop="toggleAccountMenu"
+        >
+          <span class="account-avatar" aria-hidden="true">{{ accountInitial }}</span>
+          <span class="account-label">{{ accountButtonLabel }}</span>
+          <span class="account-caret" aria-hidden="true"></span>
+        </button>
+        <div v-if="accountMenuOpen" class="account-popover" role="menu">
+          <div v-if="isAuthenticated" class="account-user">
+            {{ userDisplayName || t('auth.signedIn') }}
+          </div>
+          <button
+            v-if="isAuthenticated"
+            type="button"
+            class="account-menu-item"
+            role="menuitem"
+            @click="handleSignOut"
+          >
+            {{ t('auth.logout') }}
+          </button>
+          <button
+            v-else
+            type="button"
+            class="account-menu-item"
+            role="menuitem"
+            :disabled="loginInProgress"
+            @click="handleSignIn"
+          >
+            {{ loginInProgress ? t('auth.loggingIn') : t('auth.login') }}
+          </button>
+          <p v-if="authError" class="account-error">
+            {{ authError }}
+          </p>
+        </div>
+      </div>
     </header>
 
     <div class="app-content">
@@ -473,6 +473,8 @@ onBeforeUnmount(() => {
   gap: 1rem;
   align-items: center;
   flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 .nav-links,
@@ -484,7 +486,7 @@ onBeforeUnmount(() => {
 }
 
 .nav-controls {
-  padding-left: 0.25rem;
+  padding-left: 0.125rem;
 }
 
 .nav-links,
@@ -660,30 +662,95 @@ onBeforeUnmount(() => {
 
 @media (max-width: 720px) {
   .header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "logo account"
+      "nav nav";
+    align-items: center;
+    gap: 0.625rem 0.75rem;
     padding: 0.75rem 1rem;
   }
 
+  .logo {
+    grid-area: logo;
+  }
+
   .nav {
+    grid-area: nav;
     width: 100%;
-    flex-direction: column;
+    margin-left: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
     align-items: stretch;
   }
 
   .nav-links,
   .nav-controls {
+    width: 100%;
     justify-content: flex-start;
   }
 
+  .nav-links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nav-link {
+    justify-content: center;
+    min-height: 2.125rem;
+    padding: 0.375rem 0.5rem;
+    text-align: center;
+  }
+
+  .nav-controls {
+    gap: 0.5rem;
+    padding-left: 0;
+  }
+
   .account-menu {
+    grid-area: account;
     margin-left: auto;
   }
 
   .account-menu-button {
-    max-width: 11rem;
+    max-width: min(12rem, 42vw);
   }
 
   .logo h1 {
     font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 460px) {
+  .header {
+    gap: 0.5rem;
+    padding-inline: 0.75rem;
+  }
+
+  .logo-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .logo h1 {
+    font-size: 1.125rem;
+  }
+
+  .account-label {
+    display: none;
+  }
+
+  .account-menu-button {
+    max-width: none;
+    padding-right: 0.5rem;
+  }
+
+  .theme-btn,
+  .locale-btn {
+    min-height: 1.875rem;
+    padding-inline: 0.5rem;
   }
 }
 </style>
