@@ -1,4 +1,5 @@
 import logging
+import os
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,14 +9,19 @@ from api.playground_v2 import cleanup_v2_workers, router as playground_v2_router
 
 app = FastAPI()
 
+cors_allow_origins = [
+    origin.strip()
+    for origin in os.environ.get(
+        "CORS_ALLOW_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173",
+    ).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "*",
-    ],
-    allow_credentials=True,
+    allow_origins=cors_allow_origins,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

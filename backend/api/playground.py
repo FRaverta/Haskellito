@@ -12,8 +12,9 @@ import time
 from subprocess import Popen, PIPE, STDOUT
 from typing import Dict, List
 from uuid import uuid4
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
+from auth import require_current_user
 from challenges import CHALLENGES
 from schemas.playground import TestResult, SubmitRequest, EvalRequest
 
@@ -199,7 +200,7 @@ atexit.register(cleanup_playground_sessions)
 
 
 # --- Session endpoints ---
-@router.post("/sessions/")
+@router.post("/sessions/", dependencies=[Depends(require_current_user)])
 async def start_session():
     session_id = str(uuid4())
     process = Popen(
@@ -218,7 +219,10 @@ async def start_session():
     return {"session_id": session_id}
 
 
-@router.post("/sessions/{session_id}/eval")
+@router.post(
+    "/sessions/{session_id}/eval",
+    dependencies=[Depends(require_current_user)],
+)
 async def evaluate_code(session_id: str, request: EvalRequest):
     if session_id not in sessions:
         return {"error": "Session not found"}
@@ -256,7 +260,10 @@ async def evaluate_code(session_id: str, request: EvalRequest):
         return {"error": f"GHCi process terminated unexpectedly: {str(e)}"}
 
 
-@router.post("/sessions/{session_id}/close")
+@router.post(
+    "/sessions/{session_id}/close",
+    dependencies=[Depends(require_current_user)],
+)
 async def close_session(session_id: str):
     if session_id not in sessions:
         return {"error": "Session not found"}
@@ -294,7 +301,10 @@ async def get_challenge(
     }
 
 
-@router.post("/challenges/{challenge_id}/submit")
+@router.post(
+    "/challenges/{challenge_id}/submit",
+    dependencies=[Depends(require_current_user)],
+)
 async def submit_challenge(challenge_id: str, request: SubmitRequest):
     if challenge_id not in CHALLENGES:
         return {"error": "Challenge not found"}

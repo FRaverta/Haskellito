@@ -14,7 +14,7 @@ from typing import List, Optional
 from uuid import uuid4
 from subprocess import Popen
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
 from api.playground import (
     _start_ghci_process,
@@ -27,6 +27,7 @@ from api.playground import (
     is_dangerous_command,
     strip_ghci_continuation_prompts,
 )
+from auth import require_current_user
 from challenges import CHALLENGES
 from schemas.playground import EvalRequestV2, SubmitRequest, TestResult
 
@@ -340,14 +341,17 @@ atexit.register(cleanup_v2_workers)
 
 # ---------- Endpoints ----------
 
-@router.post("/sessions/")
+@router.post("/sessions/", dependencies=[Depends(require_current_user)])
 async def start_session_v2():
     """Return a session ID. No GHCi process is allocated."""
     await get_pool()
     return {"session_id": str(uuid4())}
 
 
-@router.post("/sessions/{session_id}/eval")
+@router.post(
+    "/sessions/{session_id}/eval",
+    dependencies=[Depends(require_current_user)],
+)
 async def evaluate_v2(session_id: str, request: EvalRequestV2):
     wp = await get_pool()
 
@@ -369,7 +373,10 @@ async def evaluate_v2(session_id: str, request: EvalRequestV2):
         await wp.release(worker)
 
 
-@router.post("/sessions/{session_id}/close")
+@router.post(
+    "/sessions/{session_id}/close",
+    dependencies=[Depends(require_current_user)],
+)
 async def close_session_v2(session_id: str):
     """No-op for v2 — workers are shared, not per-session."""
     return {"status": "Session closed"}
@@ -404,7 +411,10 @@ async def get_challenge_v2(
     }
 
 
-@router.post("/challenges/{challenge_id}/submit")
+@router.post(
+    "/challenges/{challenge_id}/submit",
+    dependencies=[Depends(require_current_user)],
+)
 async def submit_challenge_v2(
     challenge_id: str,
     request: SubmitRequest,
