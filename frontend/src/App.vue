@@ -470,7 +470,7 @@ onBeforeUnmount(() => {
 
 .nav {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
   align-items: center;
   flex-wrap: wrap;
 }
@@ -478,16 +478,26 @@ onBeforeUnmount(() => {
 .nav-links,
 .nav-controls {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
   align-items: center;
   flex-wrap: wrap;
 }
 
+.nav-controls {
+  padding-left: 0.25rem;
+}
+
+.nav-links,
 .theme-switcher,
 .locale-switcher {
   display: flex;
-  gap: 0.25rem;
   align-items: center;
+  gap: 0;
+  padding: 0.1875rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.01);
 }
 
 .account-menu {
@@ -590,9 +600,10 @@ onBeforeUnmount(() => {
 
 .theme-btn,
 .locale-btn {
-  padding: 0.25rem 0.5rem;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
+  min-height: 1.875rem;
+  padding: 0.25rem 0.625rem;
+  border: 0;
+  border-radius: 6px;
   background: transparent;
   color: var(--color-text-muted);
   font-size: 0.75rem;
@@ -614,7 +625,7 @@ onBeforeUnmount(() => {
 
 .theme-btn:hover,
 .locale-btn:hover {
-  background: var(--color-surface-hover);
+  background: var(--color-surface-raised);
   color: var(--color-text);
 }
 
@@ -622,11 +633,12 @@ onBeforeUnmount(() => {
 .locale-btn.active {
   background: var(--color-accent);
   color: var(--color-accent-contrast);
-  border-color: var(--color-accent);
+  box-shadow: var(--shadow-elevated);
 }
 
 .nav-link {
-  padding: 0.5rem 1rem;
+  min-height: 2rem;
+  padding: 0.375rem 0.875rem;
   border-radius: 6px;
   font-size: 0.875rem;
   font-weight: 500;
@@ -636,13 +648,14 @@ onBeforeUnmount(() => {
 }
 
 .nav-link:hover {
-  background: var(--color-surface-hover);
+  background: var(--color-surface-raised);
   color: var(--color-text);
 }
 
 .nav-link.active {
   background: var(--color-accent);
   color: var(--color-accent-contrast);
+  box-shadow: var(--shadow-elevated);
 }
 
 @media (max-width: 720px) {
@@ -658,11 +671,11 @@ onBeforeUnmount(() => {
 
   .nav-links,
   .nav-controls {
-    justify-content: space-between;
+    justify-content: flex-start;
   }
 
   .account-menu {
-    order: 3;
+    margin-left: auto;
   }
 
   .account-menu-button {
