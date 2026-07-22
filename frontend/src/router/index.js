@@ -17,6 +17,11 @@ const routes = [
     path: '/challenge/:id',
     name: 'challenge',
     component: ChallengeView
+  },
+  {
+    path: '/auth/callback',
+    name: 'auth-callback',
+    component: () => import('../views/AuthCallbackView.vue')
   }
 ]
 

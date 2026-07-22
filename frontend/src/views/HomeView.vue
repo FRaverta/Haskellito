@@ -1,15 +1,23 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 import CodeEditor from '../components/CodeEditor.vue'
 import Interpreter from '../components/Interpreter.vue'
+import {
+  AUTH_STATE_CHANGED_EVENT,
+  authEnabled,
+  ensureAuthenticated,
+  isAuthenticated,
+} from '../auth/cognito.js'
 import { encodeSharedCode, decodeSharedCode } from '../utils/shareCodec.js'
 
 const { t } = useI18n()
 
 const API_V1 = '/api/playground'
 const API_V2 = '/api/v2/playground'
+const PLAYGROUND_DRAFT_KEY = 'haskellito:playgroundDraft'
+const PENDING_PLAYGROUND_ACTION_KEY = 'haskellito:pendingPlaygroundAction'
 const DEFAULT_CODE = `-- Welcome to Haskellito!
 -- Write your Haskell code here
 `
@@ -29,22 +37,42 @@ let lastLoadedShareFragment = null
 
 async function startSession() {
   try {
+    if (authEnabled.value && !isAuthenticated.value && !hasPendingPlaygroundAction()) {
+      markPendingPlaygroundAction({ type: 'startSession' })
+    }
+
+    if (!(await ensureAuthenticated())) {
+      return false
+    }
+
     const response = await axios.post(`${apiBase.value}/sessions/`)
     sessionId.value = response.data.session_id
     isConnected.value = true
     serverHistory.value = []
     output.value.push({ type: 'system', text: t('playground.sessionStarted') })
+    return true
   } catch (error) {
     output.value.push({ type: 'error', text: t('errors.error', { msg: error.message }) })
+    return false
   }
 }
 
+async function ensureSession() {
+  if (sessionId.value) return true
+  return startSession()
+}
+
 async function evaluate() {
-  if (!sessionId.value) {
-    output.value.push({ type: 'error', text: t('playground.noSession') })
+  persistPlaygroundDraft()
+  if (authEnabled.value && !isAuthenticated.value) {
+    markPendingPlaygroundAction({ type: 'evaluate' })
+  }
+
+  if (!(await ensureSession())) {
     return
   }
 
+  clearPendingPlaygroundAction()
   isLoading.value = true
   const codeToEval = code.value
   output.value.push({ type: 'system', text: t('playground.loadingFromEditor') })
@@ -81,8 +109,7 @@ async function evaluate() {
 }
 
 async function evaluateCommand(command) {
-  if (!sessionId.value) {
-    output.value.push({ type: 'error', text: t('playground.noSessionShort') })
+  if (!(await ensureSession())) {
     return
   }
 
@@ -139,34 +166,94 @@ function clearOutput() {
   output.value = []
 }
 
+function persistPlaygroundDraft() {
+  try {
+    localStorage.setItem(PLAYGROUND_DRAFT_KEY, code.value)
+  } catch (error) {
+    // Ignore storage failures; losing drafts is less severe than blocking execution.
+  }
+}
+
+function restorePlaygroundDraft() {
+  try {
+    const savedCode = localStorage.getItem(PLAYGROUND_DRAFT_KEY)
+    if (savedCode !== null) {
+      code.value = savedCode
+    }
+  } catch (error) {
+    // Ignore storage failures.
+  }
+}
+
+function markPendingPlaygroundAction(action) {
+  try {
+    sessionStorage.setItem(PENDING_PLAYGROUND_ACTION_KEY, JSON.stringify(action))
+  } catch (error) {
+    // Ignore storage failures.
+  }
+}
+
+function readPendingPlaygroundAction() {
+  try {
+    const raw = sessionStorage.getItem(PENDING_PLAYGROUND_ACTION_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch (error) {
+    return null
+  }
+}
+
+function hasPendingPlaygroundAction() {
+  return Boolean(readPendingPlaygroundAction())
+}
+
+function takePendingPlaygroundAction() {
+  const action = readPendingPlaygroundAction()
+  try {
+    sessionStorage.removeItem(PENDING_PLAYGROUND_ACTION_KEY)
+  } catch (error) {
+    // Ignore storage failures.
+  }
+  return action
+}
+
+function clearPendingPlaygroundAction() {
+  try {
+    sessionStorage.removeItem(PENDING_PLAYGROUND_ACTION_KEY)
+  } catch (error) {
+    // Ignore storage failures.
+  }
+}
+
 function applySharedCodeFromHash(rawHash = window.location.hash) {
   const hash = typeof rawHash === 'string' ? rawHash : window.location.hash
 
   if (!hash || hash === '#') {
     lastLoadedShareFragment = null
-    return
+    return false
   }
 
   const fragment = hash.startsWith('#') ? hash.slice(1) : hash
 
   if (!fragment) {
     lastLoadedShareFragment = null
-    return
+    return false
   }
 
   if (fragment === lastLoadedShareFragment) {
-    return
+    return true
   }
 
   try {
     code.value = decodeSharedCode(fragment)
     lastLoadedShareFragment = fragment
     output.value.push({ type: 'system', text: t('playground.sharedCodeLoaded') })
+    return true
   } catch (error) {
     output.value.push({
       type: 'error',
       text: t('playground.shareDecodeFailed', { msg: error.message })
     })
+    return false
   }
 }
 
@@ -230,6 +317,21 @@ async function loadCodeFromFile(event) {
   }
 }
 
+function retryPendingPlaygroundAction() {
+  const pendingAction = takePendingPlaygroundAction()
+  if (pendingAction?.type === 'evaluate') {
+    window.setTimeout(evaluate, 0)
+  } else if (pendingAction?.type === 'startSession') {
+    window.setTimeout(startSession, 0)
+  }
+}
+
+function handleAuthStateChanged(event) {
+  if (event.detail?.reason === 'login' && event.detail.isAuthenticated) {
+    retryPendingPlaygroundAction()
+  }
+}
+
 // --- Resizable splitter logic ---
 const splitPercent = ref(50) // editor width as a percentage
 const isDragging = ref(false)
@@ -274,15 +376,27 @@ function handleKeydown(event) {
   }
 }
 
+watch(code, persistPlaygroundDraft)
+
 onMounted(() => {
-  applySharedCodeFromHash()
+  const loadedSharedCode = applySharedCodeFromHash()
+  if (!loadedSharedCode) {
+    restorePlaygroundDraft()
+  }
+
   window.addEventListener('keydown', handleKeydown)
   window.addEventListener('hashchange', applySharedCodeFromHash)
+  window.addEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChanged)
+
+  if (isAuthenticated.value) {
+    retryPendingPlaygroundAction()
+  }
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
   window.removeEventListener('hashchange', applySharedCodeFromHash)
+  window.removeEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChanged)
   document.removeEventListener('pointermove', onPointerMove)
   document.removeEventListener('pointerup', onPointerUp)
   closeSession()
@@ -431,7 +545,7 @@ onUnmounted(() => {
       </button>
       <button 
         @click="evaluate" 
-        :disabled="!isConnected || isLoading"
+        :disabled="isLoading"
         class="btn btn-success"
       >
         {{ isLoading ? t('playground.loading') : t('playground.load') }}

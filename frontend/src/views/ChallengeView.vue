@@ -5,9 +5,16 @@ import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 import { marked } from 'marked'
 import CodeEditor from '../components/CodeEditor.vue'
+import {
+  AUTH_STATE_CHANGED_EVENT,
+  authEnabled,
+  ensureAuthenticated,
+  isAuthenticated,
+} from '../auth/cognito.js'
 import { getChallengeProgress, setChallengeProgress, setLastViewedChallengeId } from '../stores/challengeProgress.js'
 
 const API_BASE = '/api/v2/playground'
+const PENDING_CHALLENGE_ACTION_KEY = 'haskellito:pendingChallengeAction'
 const route = useRoute()
 const router = useRouter()
 const { t, locale } = useI18n()
@@ -81,6 +88,24 @@ watch(locale, () => {
 
 // Submit solution for testing. The v2 API resets a shared worker per request.
 async function submitSolution() {
+  saveProgress()
+  if (authEnabled.value && !isAuthenticated.value) {
+    markPendingChallengeAction({
+      type: 'submit',
+      challengeId: route.params.id,
+    })
+  }
+
+  try {
+    if (!(await ensureAuthenticated())) {
+      return
+    }
+  } catch (error) {
+    errorMessage.value = error.message
+    return
+  }
+
+  clearPendingChallengeAction()
   isSubmitting.value = true
   errorMessage.value = ''
   results.value = []
@@ -99,6 +124,48 @@ async function submitSolution() {
     errorMessage.value = t('errors.submitFailed', { msg: error.message })
   } finally {
     isSubmitting.value = false
+  }
+}
+
+function markPendingChallengeAction(action) {
+  try {
+    sessionStorage.setItem(PENDING_CHALLENGE_ACTION_KEY, JSON.stringify(action))
+  } catch (error) {
+    // Ignore storage failures.
+  }
+}
+
+function takePendingChallengeAction() {
+  try {
+    const raw = sessionStorage.getItem(PENDING_CHALLENGE_ACTION_KEY)
+    sessionStorage.removeItem(PENDING_CHALLENGE_ACTION_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch (error) {
+    return null
+  }
+}
+
+function clearPendingChallengeAction() {
+  try {
+    sessionStorage.removeItem(PENDING_CHALLENGE_ACTION_KEY)
+  } catch (error) {
+    // Ignore storage failures.
+  }
+}
+
+function retryPendingChallengeAction() {
+  const pendingAction = takePendingChallengeAction()
+  if (
+    pendingAction?.type === 'submit'
+    && pendingAction.challengeId === route.params.id
+  ) {
+    window.setTimeout(submitSolution, 0)
+  }
+}
+
+function handleAuthStateChanged(event) {
+  if (event.detail?.reason === 'login' && event.detail.isAuthenticated) {
+    retryPendingChallengeAction()
   }
 }
 
@@ -146,9 +213,14 @@ function onPointerUp() {
   document.removeEventListener('pointerup', onPointerUp)
 }
 
-onMounted(() => {
-  fetchChallenge()
+onMounted(async () => {
+  await fetchChallenge()
   window.addEventListener('keydown', handleKeydown)
+  window.addEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChanged)
+
+  if (isAuthenticated.value) {
+    retryPendingChallengeAction()
+  }
 })
 
 onBeforeUnmount(() => {
@@ -157,6 +229,7 @@ onBeforeUnmount(() => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
+  window.removeEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChanged)
   document.removeEventListener('pointermove', onPointerMove)
   document.removeEventListener('pointerup', onPointerUp)
 })

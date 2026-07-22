@@ -8,6 +8,24 @@
     "light": "Light",
     "dark": "Dark"
   },
+  "auth": {
+    "account": "Account",
+    "accountMenu": "Account menu",
+    "cancel": "Cancel",
+    "login": "Login",
+    "loginRequiredTitle": "Login required",
+    "loginRequiredMessage": "Log in with Google to continue.",
+    "loginWithGoogle": "Login with Google",
+    "loggedInAs": "Logged in as {name}.",
+    "loggedOutUser": "User {name} logged out.",
+    "loggingIn": "Logging in...",
+    "logout": "Logout",
+    "signedIn": "Signed in",
+    "signingIn": "Signing you in...",
+    "closingPopup": "Finishing sign-in...",
+    "signInFailed": "Sign-in failed",
+    "backToApp": "Back to Haskellito"
+  },
   "challenge": {
     "title": "Challenge",
     "pickOther": "Pick other challenge",

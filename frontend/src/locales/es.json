@@ -8,6 +8,24 @@
     "light": "Light",
     "dark": "Dark"
   },
+  "auth": {
+    "account": "Cuenta",
+    "accountMenu": "Menú de cuenta",
+    "cancel": "Cancelar",
+    "login": "Ingresar",
+    "loginRequiredTitle": "Inicio de sesión requerido",
+    "loginRequiredMessage": "Ingresá con Google para continuar.",
+    "loginWithGoogle": "Ingresar con Google",
+    "loggedInAs": "Sesión iniciada como {name}.",
+    "loggedOutUser": "El usuario {name} cerró sesión.",
+    "loggingIn": "Ingresando...",
+    "logout": "Salir",
+    "signedIn": "Sesión iniciada",
+    "signingIn": "Iniciando sesión...",
+    "closingPopup": "Finalizando inicio de sesión...",
+    "signInFailed": "No se pudo iniciar sesión",
+    "backToApp": "Volver a Haskellito"
+  },
   "challenge": {
     "title": "Challenge",
     "pickOther": "Elegir otro desafío",
