@@ -10,6 +10,11 @@ WorkingDirectory=/opt/Haskellito/backend
 Environment="PATH=/opt/Haskellito/backend/venv/bin:/opt/ghcup/.ghcup/bin:/usr/bin"
 Environment="GHCI_HOME=/tmp"
 Environment="GHCI_TMPDIR=/tmp"
+Environment="COGNITO_AUTH_ENABLED=true"
+Environment="COGNITO_REGION=us-east-1"
+Environment="COGNITO_USER_POOL_ID=us-east-1_dwg2mt4BF"
+Environment="COGNITO_APP_CLIENT_ID=3akv2gdc854btlb5g6057bf67j"
+Environment="CORS_ALLOW_ORIGINS=https://haskellito.com"
 ExecStart=/opt/Haskellito/backend/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
 Restart=always
 RestartSec=5
