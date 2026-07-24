@@ -1,13 +1,94 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: Haskellito playground API on AWS Lambda.
+Description: Haskellito serverless site and playground API.
+
+Parameters:
+  SiteName:
+    Type: String
+    Default: haskellito
+    Description: Short name used for CloudFront resources.
+    MaxLength: 32
+    AllowedPattern: "^[a-z0-9-]+$"
+
+  DomainName:
+    Type: String
+    Default: ""
+    Description: Optional custom domain name, for example haskellito.com.
+
+  CertificateArn:
+    Type: String
+    Default: ""
+    Description: Optional ACM certificate ARN for DomainName. Must be in us-east-1 for CloudFront.
+
+  HostedZoneId:
+    Type: String
+    Default: ""
+    Description: Optional Route 53 hosted zone ID. When set with DomainName and CertificateArn, A/AAAA alias records are created.
+
+  PriceClass:
+    Type: String
+    Default: PriceClass_100
+    Description: CloudFront edge location price class.
+    AllowedValues:
+      - PriceClass_100
+      - PriceClass_200
+      - PriceClass_All
+
+  LambdaTimeoutSeconds:
+    Type: Number
+    Default: 30
+    MinValue: 1
+    MaxValue: 30
+    Description: Lambda hard timeout in seconds. Keep this at or below API Gateway's synchronous request timeout.
+
+  WorkerAcquireTimeoutSeconds:
+    Type: String
+    Default: "10"
+    AllowedPattern: "^[0-9]+(\\.[0-9]+)?$"
+    Description: Seconds an eval/submit request waits for a GHCi worker.
+
+  GhciStartupTimeoutSeconds:
+    Type: String
+    Default: "30"
+    AllowedPattern: "^[0-9]+(\\.[0-9]+)?$"
+    Description: Seconds allowed for GHCi startup inside the Lambda execution environment.
+
+  EvalCommandTimeoutSeconds:
+    Type: String
+    Default: "10"
+    AllowedPattern: "^[0-9]+(\\.[0-9]+)?$"
+    Description: Seconds allowed for loading/evaluating user code.
+
+  HistoryCommandTimeoutSeconds:
+    Type: String
+    Default: "5"
+    AllowedPattern: "^[0-9]+(\\.[0-9]+)?$"
+    Description: Seconds allowed for replayed history commands and individual challenge tests.
+
+Rules:
+  DomainRequiresCertificate:
+    RuleCondition: !Not [!Equals [!Ref DomainName, ""]]
+    Assertions:
+      - Assert: !Not [!Equals [!Ref CertificateArn, ""]]
+        AssertDescription: CertificateArn is required when DomainName is set.
+
+Conditions:
+  HasCustomDomain: !Not [!Equals [!Ref DomainName, ""]]
+  HasCertificate: !Not [!Equals [!Ref CertificateArn, ""]]
+  HasHostedZone: !Not [!Equals [!Ref HostedZoneId, ""]]
+  UseCustomDomain: !And
+    - !Condition HasCustomDomain
+    - !Condition HasCertificate
+  CreateDnsRecords: !And
+    - !Condition UseCustomDomain
+    - !Condition HasHostedZone
 
 Globals:
   Function:
     Architectures:
       - x86_64
     MemorySize: 2048
-    Timeout: 30
+    Timeout: !Ref LambdaTimeoutSeconds
     Environment:
       Variables:
         PYTHONUNBUFFERED: "1"
@@ -15,10 +96,10 @@ Globals:
         TMPDIR: "/tmp"
         XDG_CACHE_HOME: "/tmp/.cache"
         NUM_GHCI_SESSIONS: "1"
-        WORKER_ACQUIRE_TIMEOUT: "10"
-        GHCI_STARTUP_TIMEOUT: "30"
-        EVAL_CMD_TIMEOUT: "10"
-        HISTORY_CMD_TIMEOUT: "5"
+        WORKER_ACQUIRE_TIMEOUT: !Ref WorkerAcquireTimeoutSeconds
+        GHCI_STARTUP_TIMEOUT: !Ref GhciStartupTimeoutSeconds
+        EVAL_CMD_TIMEOUT: !Ref EvalCommandTimeoutSeconds
+        HISTORY_CMD_TIMEOUT: !Ref HistoryCommandTimeoutSeconds
         CORS_ALLOW_ORIGINS: "*"
 
 Resources:
@@ -52,7 +133,269 @@ Resources:
       Dockerfile: serverless/lambdas/playground/Dockerfile
       DockerTag: playground-v1
 
+  SiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+
+  SiteOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${SiteName}-site-oac"
+        Description: !Sub "Origin access control for ${AWS::StackName} site bucket"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  ChallengeJsonRewriteFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub "${SiteName}-challenge-json"
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Rewrite challenge API GET requests to static JSON files.
+        Runtime: cloudfront-js-2.0
+      FunctionCode: |
+        function handler(event) {
+          var request = event.request;
+          var uri = request.uri;
+          var prefix = "/api/v2/playground/challenges/";
+          var lang = "";
+
+          if (request.method !== "GET" && request.method !== "HEAD") {
+            return request;
+          }
+
+          if (request.querystring.lang) {
+            var value = request.querystring.lang.value;
+            if (value === "en" || value === "es") {
+              lang = "." + value;
+            }
+          }
+
+          if (uri === "/api/v2/playground/challenges" || uri === prefix) {
+            request.uri = "/api/v2/playground/challenges/index" + lang + ".json";
+            return request;
+          }
+
+          if (uri.indexOf(prefix) === 0 && uri.indexOf("/submit") === -1) {
+            if (uri.slice(-5) !== ".json") {
+              request.uri = uri + lang + ".json";
+            }
+          }
+
+          return request;
+        }
+
+  ChallengeJsonCachePolicy:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Name: !Sub "${SiteName}-challenge-json-cache"
+        Comment: Cache public challenge JSON without forwarding query strings.
+        DefaultTTL: 300
+        MaxTTL: 300
+        MinTTL: 0
+        ParametersInCacheKeyAndForwardedToOrigin:
+          EnableAcceptEncodingBrotli: true
+          EnableAcceptEncodingGzip: true
+          CookiesConfig:
+            CookieBehavior: none
+          HeadersConfig:
+            HeaderBehavior: none
+          QueryStringsConfig:
+            QueryStringBehavior: none
+
+  SiteDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Aliases: !If
+          - UseCustomDomain
+          - - !Ref DomainName
+          - !Ref AWS::NoValue
+        Comment: !Sub "${SiteName} serverless site"
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: http2and3
+        IPV6Enabled: true
+        PriceClass: !Ref PriceClass
+        Origins:
+          - Id: SiteS3Origin
+            DomainName: !GetAtt SiteBucket.RegionalDomainName
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+            OriginAccessControlId: !GetAtt SiteOriginAccessControl.Id
+          - Id: PlaygroundApiOrigin
+            DomainName: !Sub "${PlaygroundHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+            CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols:
+                - TLSv1.2
+        DefaultCacheBehavior:
+          TargetOriginId: SiteS3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+          CachedMethods:
+            - GET
+            - HEAD
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+          Compress: true
+        CacheBehaviors:
+          - PathPattern: /api/v2/playground/challenges/*/submit
+            TargetOriginId: PlaygroundApiOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods:
+              - DELETE
+              - GET
+              - HEAD
+              - OPTIONS
+              - PATCH
+              - POST
+              - PUT
+            CachedMethods:
+              - GET
+              - HEAD
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac
+            Compress: true
+          - PathPattern: /api/v2/playground/challenges*
+            TargetOriginId: SiteS3Origin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods:
+              - GET
+              - HEAD
+            CachedMethods:
+              - GET
+              - HEAD
+            CachePolicyId: !Ref ChallengeJsonCachePolicy
+            Compress: true
+            FunctionAssociations:
+              - EventType: viewer-request
+                FunctionARN: !GetAtt ChallengeJsonRewriteFunction.FunctionARN
+          - PathPattern: /api/*
+            TargetOriginId: PlaygroundApiOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods:
+              - DELETE
+              - GET
+              - HEAD
+              - OPTIONS
+              - PATCH
+              - POST
+              - PUT
+            CachedMethods:
+              - GET
+              - HEAD
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac
+            Compress: true
+          - PathPattern: /assets/*
+            TargetOriginId: SiteS3Origin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods:
+              - GET
+              - HEAD
+            CachedMethods:
+              - GET
+              - HEAD
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+            Compress: true
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 0
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 0
+        ViewerCertificate: !If
+          - UseCustomDomain
+          - AcmCertificateArn: !Ref CertificateArn
+            MinimumProtocolVersion: TLSv1.2_2021
+            SslSupportMethod: sni-only
+          - CloudFrontDefaultCertificate: true
+
+  SiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SiteBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipalReadOnly
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub "${SiteBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${SiteDistribution}"
+
+  SiteAliasRecord:
+    Condition: CreateDnsRecords
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref DomainName
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt SiteDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+
+  SiteIpv6AliasRecord:
+    Condition: CreateDnsRecords
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref DomainName
+      Type: AAAA
+      AliasTarget:
+        DNSName: !GetAtt SiteDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+
 Outputs:
+  SiteBucketName:
+    Description: S3 bucket for frontend and generated public challenge JSON.
+    Value: !Ref SiteBucket
+
+  SiteDistributionId:
+    Description: CloudFront distribution ID.
+    Value: !Ref SiteDistribution
+
+  SiteDistributionDomainName:
+    Description: CloudFront distribution domain name.
+    Value: !GetAtt SiteDistribution.DomainName
+
+  SiteUrl:
+    Description: Primary site URL.
+    Value: !If
+      - UseCustomDomain
+      - !Sub "https://${DomainName}"
+      - !Sub "https://${SiteDistribution.DomainName}"
+
   PlaygroundApiUrl:
     Description: API Gateway HTTP API endpoint.
     Value: !Sub "https://${PlaygroundHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+
+  CloudFrontHostedZoneId:
+    Description: Hosted zone ID for CloudFront alias records.
+    Value: Z2FDTNDATAQYW2

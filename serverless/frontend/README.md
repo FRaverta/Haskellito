@@ -28,9 +28,9 @@ serverless/frontend/public/api/v2/playground/challenges/<challenge-id>.en.json
 serverless/frontend/public/api/v2/playground/challenges/<challenge-id>.es.json
 ```
 
-CloudFront should attach
-`serverless/frontend/cloudfront-functions/rewrite_challenge_json.js` to the
-static challenge behavior. It rewrites the current frontend URLs:
+The deployed CloudFront Function is managed by `serverless/template.yaml`. The
+copy at `serverless/frontend/cloudfront-functions/rewrite_challenge_json.js`
+documents the rewrite logic for review. It rewrites the current frontend URLs:
 
 ```text
 /api/v2/playground/challenges
@@ -65,8 +65,8 @@ Then publish both static sources to the same S3 site bucket:
 
 ```sh
 aws s3 sync frontend/dist "s3://$SITE_BUCKET" --delete
-aws s3 cp serverless/frontend/public/api "s3://$SITE_BUCKET/api" \
-  --recursive \
+aws s3 sync serverless/frontend/public/api "s3://$SITE_BUCKET/api" \
+  --delete \
   --content-type application/json \
   --cache-control "public,max-age=300"
 ```
