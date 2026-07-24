@@ -5,8 +5,12 @@ __pycache__/
 *.so
 .Python
 venv/
+.aws-sam/
 .env
 .env.*
+!.env.example
+.envrc
+!.envrc.example
 !frontend/.env.production
 
 # Local OAuth credentials

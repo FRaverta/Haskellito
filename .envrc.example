@@ -1,0 +1,4 @@
+export AWS_PROFILE=haskellito-serverless
+export AWS_REGION=us-east-1
+export AWS_ACCOUNT_ID=123456789012
+
