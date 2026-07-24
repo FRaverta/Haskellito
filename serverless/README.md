@@ -158,6 +158,40 @@ WORKER_ACQUIRE_TIMEOUT_SECONDS=5 \
 Keep `LAMBDA_TIMEOUT_SECONDS` at or below 30 seconds because requests are served
 synchronously through API Gateway.
 
+### Lambda Budget Guard
+
+Set `LAMBDA_BUDGET_LIMIT_USD` to create a monthly AWS Budgets cost budget
+filtered to AWS Lambda. When the actual spend reaches
+`LAMBDA_BUDGET_SHUTDOWN_THRESHOLD_PERCENT`, AWS Budgets publishes to SNS and a
+guard Lambda sets the playground Lambda reserved concurrency to `0`.
+
+```sh
+LAMBDA_BUDGET_LIMIT_USD=10 \
+LAMBDA_BUDGET_SHUTDOWN_THRESHOLD_PERCENT=100 \
+./serverless/deploy_prod.sh
+```
+
+Use `LAMBDA_BUDGET_LIMIT_USD=0` to disable the budget guard. AWS Budgets uses
+billing data refreshes, not real-time request accounting, so this guard can fire
+after the threshold has already been crossed. If you need a hard request limit,
+add an app-side monthly quota in front of the eval/submit endpoints.
+
+After the guard disables the playground Lambda, re-enable it manually:
+
+```sh
+PLAYGROUND_FUNCTION=$(aws cloudformation describe-stacks \
+  --stack-name haskellito-prod \
+  --query "Stacks[0].Outputs[?OutputKey=='PlaygroundFunctionName'].OutputValue | [0]" \
+  --output text)
+
+aws lambda delete-function-concurrency \
+  --function-name "$PLAYGROUND_FUNCTION"
+```
+
+Actual budget alerts are sent once per budget period. If you re-enable the
+Lambda while the same monthly budget period is still above threshold, the same
+actual-spend alert will not fire again until the next period.
+
 To deploy only the infrastructure stack:
 
 ```sh
@@ -179,6 +213,8 @@ sam deploy \
     GhciStartupTimeoutSeconds=30 \
     EvalCommandTimeoutSeconds=10 \
     HistoryCommandTimeoutSeconds=5 \
+    LambdaBudgetLimitUsd=0 \
+    LambdaBudgetShutdownThresholdPercent=100 \
     DomainName=haskellito.com \
     CertificateArn=arn:aws:acm:us-east-1:123456789012:certificate/example \
     HostedZoneId=Z1234567890ABC
@@ -224,6 +260,9 @@ SiteDistributionId
 SiteDistributionDomainName
 SiteUrl
 PlaygroundApiUrl
+PlaygroundFunctionName
+LambdaBudgetName
+LambdaBudgetShutdownFunctionName
 CloudFrontHostedZoneId
 ```
 

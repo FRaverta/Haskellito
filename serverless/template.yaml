@@ -65,6 +65,19 @@ Parameters:
     AllowedPattern: "^[0-9]+(\\.[0-9]+)?$"
     Description: Seconds allowed for replayed history commands and individual challenge tests.
 
+  LambdaBudgetLimitUsd:
+    Type: Number
+    Default: 0
+    MinValue: 0
+    Description: Monthly AWS Lambda cost budget in USD. Set 0 to disable the budget guard.
+
+  LambdaBudgetShutdownThresholdPercent:
+    Type: Number
+    Default: 100
+    MinValue: 1
+    MaxValue: 100
+    Description: Actual Lambda spend percentage of LambdaBudgetLimitUsd that disables the playground Lambda.
+
 Rules:
   DomainRequiresCertificate:
     RuleCondition: !Not [!Equals [!Ref DomainName, ""]]
@@ -82,6 +95,7 @@ Conditions:
   CreateDnsRecords: !And
     - !Condition UseCustomDomain
     - !Condition HasHostedZone
+  EnableLambdaBudgetGuard: !Not [!Equals [!Ref LambdaBudgetLimitUsd, 0]]
 
 Globals:
   Function:
@@ -132,6 +146,139 @@ Resources:
       DockerContext: ..
       Dockerfile: serverless/lambdas/playground/Dockerfile
       DockerTag: playground-v1
+
+  LambdaBudgetAlarmTopic:
+    Condition: EnableLambdaBudgetGuard
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${SiteName}-lambda-budget-alarm"
+
+  LambdaBudgetAlarmTopicPolicy:
+    Condition: EnableLambdaBudgetGuard
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics:
+        - !Ref LambdaBudgetAlarmTopic
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowAwsBudgetsToPublish
+            Effect: Allow
+            Principal:
+              Service: budgets.amazonaws.com
+            Action: sns:Publish
+            Resource: !Ref LambdaBudgetAlarmTopic
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+              ArnLike:
+                aws:SourceArn: !Sub "arn:aws:budgets::${AWS::AccountId}:*"
+
+  LambdaBudgetGuardRole:
+    Condition: EnableLambdaBudgetGuard
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DisablePlaygroundLambda
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:PutFunctionConcurrency
+                Resource: !GetAtt PlaygroundFunction.Arn
+
+  LambdaBudgetShutdownFunction:
+    Condition: EnableLambdaBudgetGuard
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Disable the playground Lambda when the Lambda budget is exceeded.
+      Runtime: python3.12
+      Handler: index.handler
+      Role: !GetAtt LambdaBudgetGuardRole.Arn
+      MemorySize: 128
+      Timeout: 30
+      Environment:
+        Variables:
+          TARGET_FUNCTION_NAME: !Ref PlaygroundFunction
+      Code:
+        ZipFile: |
+          import logging
+          import os
+
+          import boto3
+
+
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+          lambda_client = boto3.client("lambda")
+
+
+          def handler(event, context):
+              function_name = os.environ["TARGET_FUNCTION_NAME"]
+              logger.warning(
+                  "Budget threshold reached; disabling %s",
+                  function_name,
+              )
+              lambda_client.put_function_concurrency(
+                  FunctionName=function_name,
+                  ReservedConcurrentExecutions=0,
+              )
+              return {
+                  "disabled": function_name,
+                  "records": len(event.get("Records", [])),
+              }
+
+  LambdaBudgetAlarmInvokePermission:
+    Condition: EnableLambdaBudgetGuard
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LambdaBudgetShutdownFunction
+      Principal: sns.amazonaws.com
+      SourceArn: !Ref LambdaBudgetAlarmTopic
+
+  LambdaBudgetAlarmSubscription:
+    Condition: EnableLambdaBudgetGuard
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: lambda
+      TopicArn: !Ref LambdaBudgetAlarmTopic
+      Endpoint: !GetAtt LambdaBudgetShutdownFunction.Arn
+
+  LambdaMonthlyBudget:
+    Condition: EnableLambdaBudgetGuard
+    DependsOn: LambdaBudgetAlarmTopicPolicy
+    Type: AWS::Budgets::Budget
+    Properties:
+      Budget:
+        BudgetName: !Sub "${AWS::StackName}-lambda-monthly"
+        BudgetLimit:
+          Amount: !Ref LambdaBudgetLimitUsd
+          Unit: USD
+        BudgetType: COST
+        CostFilters:
+          Service:
+            - AWS Lambda
+        TimeUnit: MONTHLY
+      NotificationsWithSubscribers:
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: !Ref LambdaBudgetShutdownThresholdPercent
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: SNS
+              Address: !Ref LambdaBudgetAlarmTopic
 
   SiteBucket:
     Type: AWS::S3::Bucket
@@ -395,6 +542,20 @@ Outputs:
   PlaygroundApiUrl:
     Description: API Gateway HTTP API endpoint.
     Value: !Sub "https://${PlaygroundHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+
+  PlaygroundFunctionName:
+    Description: Playground Lambda function name.
+    Value: !Ref PlaygroundFunction
+
+  LambdaBudgetName:
+    Condition: EnableLambdaBudgetGuard
+    Description: Monthly Lambda budget that triggers the shutdown guard.
+    Value: !Ref LambdaMonthlyBudget
+
+  LambdaBudgetShutdownFunctionName:
+    Condition: EnableLambdaBudgetGuard
+    Description: Guard Lambda invoked by the budget SNS alert.
+    Value: !Ref LambdaBudgetShutdownFunction
 
   CloudFrontHostedZoneId:
     Description: Hosted zone ID for CloudFront alias records.
