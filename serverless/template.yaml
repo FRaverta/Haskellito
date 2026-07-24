@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Haskellito playground API on AWS Lambda.
+
+Globals:
+  Function:
+    Architectures:
+      - x86_64
+    MemorySize: 2048
+    Timeout: 30
+    Environment:
+      Variables:
+        PYTHONUNBUFFERED: "1"
+        HOME: "/tmp"
+        TMPDIR: "/tmp"
+        XDG_CACHE_HOME: "/tmp/.cache"
+        NUM_GHCI_SESSIONS: "1"
+        WORKER_ACQUIRE_TIMEOUT: "10"
+        GHCI_STARTUP_TIMEOUT: "30"
+        EVAL_CMD_TIMEOUT: "10"
+        HISTORY_CMD_TIMEOUT: "5"
+        CORS_ALLOW_ORIGINS: "*"
+
+Resources:
+  PlaygroundHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - authorization
+          - content-type
+
+  PlaygroundFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Events:
+        ApiProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PlaygroundHttpApi
+            Path: /api/{proxy+}
+            Method: ANY
+    Metadata:
+      DockerContext: ..
+      Dockerfile: serverless/lambdas/playground/Dockerfile
+      DockerTag: playground-v1
+
+Outputs:
+  PlaygroundApiUrl:
+    Description: API Gateway HTTP API endpoint.
+    Value: !Sub "https://${PlaygroundHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
