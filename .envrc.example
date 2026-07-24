@@ -2,3 +2,18 @@ export AWS_PROFILE=haskellito-serverless
 export AWS_REGION=us-east-1
 export AWS_ACCOUNT_ID=123456789012
 
+export STACK_NAME=haskellito-prod
+export SITE_NAME=haskellito
+export DOMAIN_NAME=haskellito.com
+export CERTIFICATE_ARN=arn:aws:acm:us-east-1:123456789012:certificate/example
+export HOSTED_ZONE_ID=
+export PRICE_CLASS=PriceClass_100
+
+export SAM_ARTIFACTS_BUCKET="haskellito-sam-artifacts-${AWS_ACCOUNT_ID}-${AWS_REGION}"
+export PLAYGROUND_IMAGE_REPOSITORY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/haskellito/playground"
+
+export LAMBDA_TIMEOUT_SECONDS=30
+export WORKER_ACQUIRE_TIMEOUT_SECONDS=10
+export GHCI_STARTUP_TIMEOUT_SECONDS=30
+export EVAL_CMD_TIMEOUT_SECONDS=10
+export HISTORY_CMD_TIMEOUT_SECONDS=5
