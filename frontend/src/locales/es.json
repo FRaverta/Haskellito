@@ -54,6 +54,7 @@
     "connected": "● Conectado",
     "disconnected": "○ Desconectado",
     "connect": "Conectar a GHCi",
+    "connecting": "Conectando a GHCi...",
     "disconnect": "Desconectar",
     "load": "Cargar (⌘+Enter)",
     "loading": "Cargando...",

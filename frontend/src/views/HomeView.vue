@@ -30,12 +30,17 @@ const code = ref(DEFAULT_CODE)
 const output = ref([])
 const sessionId = ref(null)
 const isConnected = ref(false)
+const isConnecting = ref(false)
 const isLoading = ref(false)
 const serverHistory = ref([])
 const fileInputRef = ref(null)
 let lastLoadedShareFragment = null
 
 async function startSession() {
+  if (isConnecting.value) return false
+  if (sessionId.value && isConnected.value) return true
+
+  isConnecting.value = true
   try {
     if (authEnabled.value && !isAuthenticated.value && !hasPendingPlaygroundAction()) {
       markPendingPlaygroundAction({ type: 'startSession' })
@@ -54,15 +59,20 @@ async function startSession() {
   } catch (error) {
     output.value.push({ type: 'error', text: t('errors.error', { msg: error.message }) })
     return false
+  } finally {
+    isConnecting.value = false
   }
 }
 
 async function ensureSession() {
   if (sessionId.value) return true
+  if (isConnecting.value) return false
   return startSession()
 }
 
 async function evaluate() {
+  if (isConnecting.value) return
+
   persistPlaygroundDraft()
   if (authEnabled.value && !isAuthenticated.value) {
     markPendingPlaygroundAction({ type: 'evaluate' })
@@ -109,6 +119,8 @@ async function evaluate() {
 }
 
 async function evaluateCommand(command) {
+  if (isConnecting.value) return
+
   if (!(await ensureSession())) {
     return
   }
@@ -372,6 +384,7 @@ function onPointerUp() {
 function handleKeydown(event) {
   if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
     event.preventDefault()
+    if (isConnecting.value) return
     evaluate()
   }
 }
@@ -404,8 +417,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="home-view">
-    <main ref="mainRef" class="main" :class="{ 'is-dragging': isDragging }">
+  <div class="home-view" :aria-busy="isConnecting ? 'true' : 'false'">
+    <main
+      ref="mainRef"
+      class="main"
+      :class="{ 'is-dragging': isDragging }"
+      :inert="isConnecting ? '' : null"
+    >
       <div class="panel editor-panel" :style="editorStyle">
         <div class="panel-header">
           <span>{{ t('playground.editor') }}</span>
@@ -415,6 +433,7 @@ onUnmounted(() => {
               class="icon-btn"
               :title="t('playground.loadTooltip')"
               :aria-label="t('playground.loadTooltip')"
+              :disabled="isConnecting"
               @click="openLoadDialog"
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -433,6 +452,7 @@ onUnmounted(() => {
               class="icon-btn"
               :title="t('playground.saveTooltip')"
               :aria-label="t('playground.saveTooltip')"
+              :disabled="isConnecting"
               @click="saveCodeToFile"
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -459,6 +479,7 @@ onUnmounted(() => {
               class="icon-btn"
               :title="t('playground.shareTooltip')"
               :aria-label="t('playground.shareTooltip')"
+              :disabled="isConnecting"
               @click="shareCode"
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -514,51 +535,74 @@ onUnmounted(() => {
       </div>
     </main>
 
-    <div class="toolbar">
-      <div v-show="false" class="mode-toggle" :class="{ disabled: isConnected }">
+    <div class="toolbar" :inert="isConnecting ? '' : null">
+      <div v-show="false" class="mode-toggle" :class="{ disabled: isConnected || isConnecting }">
         <button
           class="mode-btn"
           :class="{ active: apiMode === 'dedicated' }"
-          :disabled="isConnected"
+          :disabled="isConnected || isConnecting"
           @click="apiMode = 'dedicated'"
         >{{ t('playground.modeDedicated') }}</button>
         <button
           class="mode-btn"
           :class="{ active: apiMode === 'shared' }"
-          :disabled="isConnected"
+          :disabled="isConnected || isConnecting"
           @click="apiMode = 'shared'"
         >{{ t('playground.modeShared') }}</button>
       </div>
       <button 
         v-if="!isConnected" 
+        type="button"
         @click="startSession" 
+        :disabled="isConnecting"
         class="btn btn-primary"
       >
-        {{ t('playground.connect') }}
+        <span v-if="isConnecting" class="button-spinner" aria-hidden="true"></span>
+        {{ isConnecting ? t('playground.connecting') : t('playground.connect') }}
       </button>
       <button 
         v-else 
+        type="button"
         @click="closeSession" 
+        :disabled="isConnecting"
         class="btn btn-secondary"
       >
         {{ t('playground.disconnect') }}
       </button>
       <button 
+        type="button"
         @click="evaluate" 
-        :disabled="isLoading"
+        :disabled="isLoading || isConnecting"
         class="btn btn-success"
       >
         {{ isLoading ? t('playground.loading') : t('playground.load') }}
       </button>
-      <button @click="clearOutput" class="btn btn-secondary">
+      <button
+        type="button"
+        @click="clearOutput"
+        :disabled="isConnecting"
+        class="btn btn-secondary"
+      >
         {{ t('playground.clearOutput') }}
       </button>
+    </div>
+
+    <div
+      v-if="isConnecting"
+      class="connection-overlay"
+      role="status"
+      aria-live="polite"
+      :aria-label="t('playground.connecting')"
+    >
+      <div class="connection-spinner" aria-hidden="true"></div>
+      <div class="connection-message">{{ t('playground.connecting') }}</div>
     </div>
   </div>
 </template>
 
 <style scoped>
 .home-view {
+  position: relative;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -657,6 +701,11 @@ onUnmounted(() => {
   border-color: var(--color-border-hover);
 }
 
+.icon-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
 .icon-btn:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
@@ -711,6 +760,10 @@ onUnmounted(() => {
 }
 
 .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 6px;
@@ -722,7 +775,54 @@ onUnmounted(() => {
 
 .btn:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
+  cursor: wait;
+}
+
+.button-spinner,
+.connection-spinner {
+  border-radius: 50%;
+  border-style: solid;
+  border-color: currentColor transparent currentColor currentColor;
+  animation: spin 0.8s linear infinite;
+}
+
+.button-spinner {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-width: 2px;
+}
+
+.connection-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--color-bg) 72%, transparent);
+  color: var(--color-text);
+  cursor: wait;
+}
+
+.connection-spinner {
+  justify-self: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-width: 4px;
+  color: var(--color-accent);
+}
+
+.connection-message {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .btn-primary {
